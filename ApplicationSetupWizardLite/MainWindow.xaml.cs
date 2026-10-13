@@ -195,6 +195,22 @@ namespace ApplicationSetupWizardLite
             procService.NextProcess();
             GetStepMessages();
             ChangeContent(procCtx.currentStep);
+
+            if(procCtx.currentStep == 3)
+            {
+                procService.NextProcess();
+
+                // procService.Install(setupCtx.InstallPath);
+                System.Windows.MessageBox.Show(
+                    "インストールが完了しました。", 
+                    "テスト用メッセージ", 
+                    MessageBoxButton.OK, 
+                    MessageBoxImage.Information
+                );
+
+                GetStepMessages();
+                ChangeContent(procCtx.currentStep);
+            }
         }
 
         private void BackButton_Click(object sender, RoutedEventArgs e)
