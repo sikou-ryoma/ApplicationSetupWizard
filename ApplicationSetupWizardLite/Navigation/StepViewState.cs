@@ -9,6 +9,7 @@ namespace ApplicationSetupWizardLite.Navigation
         public string? NextButtonText { get; set; }
         public string? BackButtonText { get; set; }
 
+        public bool CanGoNext { get; set; }
         public bool CanGoBack { get; set; }
 
         public bool ShowCancel { get; set; }

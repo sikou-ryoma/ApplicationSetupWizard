@@ -28,42 +28,39 @@
 
 
         <!-- 説明 -->
-        <!--<TextBlock Grid.Row="1"
+        <TextBlock Grid.Row="1"
                 Text="アプリケーションをインストールしています。しばらくお待ちください。"
                 FontSize="14"
                 Foreground="#555555"
                 TextWrapping="Wrap"
-                Margin="0,0,0,30"/>-->
+                Margin="0,0,0,30"/>
         
-        <TextBlock Grid.Row="1"
+        <!--<TextBlock Grid.Row="1"
                 Text="サンプルの為インストールは行われません。"
                 FontSize="14"
                 Foreground="#555555"
                 TextWrapping="Wrap"
-                Margin="0,0,0,30"/>
+                Margin="0,0,0,30"/>-->
 
 
         <!-- 現在の処理 -->
         <StackPanel Grid.Row="2">
 
-            <TextBlock x:Name="StatusText"
-                    Text="インストールの準備をしています..."
+            <TextBlock Text="{Binding Status}"
                     FontSize="14"
                     Foreground="#333333"
                     Margin="0,0,0,10"/>
 
 
             <!-- プログレスバー -->
-            <ProgressBar x:Name="InstallProgressBar"
-                        Height="20"
+            <ProgressBar Height="20"
                         Minimum="0"
                         Maximum="100"
-                        Value="0"/>
+                        Value="{Binding Progress}"/>
 
 
             <!-- 進捗率 -->
-            <TextBlock x:Name="ProgressText"
-                    Text="0%"
+            <TextBlock Text="{Binding Progress, StringFormat={}{0}%}"
                     HorizontalAlignment="Right"
                     FontSize="12"
                     Foreground="#666666"
@@ -89,8 +86,7 @@
                         Foreground="#444444"
                         Margin="0,0,0,10"/>
 
-                <TextBlock x:Name="DetailText"
-                        Text="インストールを開始しています..."
+                <TextBlock Text="{Binding Detail}"
                         FontSize="12"
                         Foreground="#666666"
                         TextWrapping="Wrap"/>

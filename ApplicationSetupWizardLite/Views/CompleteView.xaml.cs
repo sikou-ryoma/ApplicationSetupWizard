@@ -1,4 +1,6 @@
 ﻿using ApplicationSetupWizardLite.Conf;
+using ApplicationSetupWizardLite.Context;
+using ApplicationSetupWizardLite.ViewModels;
 
 namespace ApplicationSetupWizardLite.Views
 {
@@ -8,11 +10,12 @@ namespace ApplicationSetupWizardLite.Views
     public partial class CompleteView : System.Windows.Controls.UserControl
     {
         private readonly AppConfig _appConfig;
-        public CompleteView(AppConfig appConfig)
+        public CompleteView(AppConfig appConfig, SetupResult result)
         {
             InitializeComponent();
             _appConfig = appConfig;
-            DescriptionText.Text = $"{_appConfig.appName} のインストールが正常に完了しました。";
+            DataContext = new CompleteViewModel(result);
+            // DescriptionText.Text = $"{_appConfig.appName} のインストールが正常に完了しました。";
         }
     }
 }

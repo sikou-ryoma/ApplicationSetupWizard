@@ -19,7 +19,7 @@
 
         <!-- タイトル -->
         <TextBlock Grid.Row="0"
-               Text="インストールが完了しました"
+               Text="{Binding ResultTitle}"
                FontSize="20"
                FontWeight="SemiBold"
                Foreground="#333333"
@@ -28,8 +28,7 @@
 
         <!-- 説明 -->
         <TextBlock Grid.Row="1"
-               x:Name="DescriptionText"
-               Text="MY APPLICATION のインストールが正常に完了しました。"
+               Text="{Binding Description}"
                FontSize="14"
                Foreground="#555555"
                TextWrapping="Wrap"
@@ -53,34 +52,32 @@
 
                 <!-- 完了マーク -->
                 <Border Grid.Column="0"
-                    Width="48"
-                    Height="48"
-                    CornerRadius="24"
-                    Background="#4CAF50"
-                    VerticalAlignment="Top">
-
-                    <TextBlock Text="✓"
-                           Foreground="White"
-                           FontSize="28"
-                           FontWeight="Bold"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center"/>
-
+                        Width="48"
+                        Height="48"
+                        CornerRadius="24"
+                        Background="{Binding ResultBackground}"
+                        VerticalAlignment="Top">
+                    
+                    <TextBlock Text="{Binding ResultSymbol}"
+                               Foreground="White"
+                               FontSize="28"
+                               FontWeight="Bold"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
                 </Border>
-
 
                 <!-- メッセージ -->
                 <StackPanel Grid.Column="1"
                         Margin="18,0,0,0">
 
                     <TextBlock x:Name="ResultTitleText"
-                           Text="セットアップは正常に完了しました。"
+                           Text="{Binding ResultTitle}"
                            FontSize="15"
                            FontWeight="SemiBold"
                            Foreground="#333333"/>
 
                     <TextBlock x:Name="ResultDetailText"
-                           Text="アプリケーションを使用する準備ができました。"
+                           Text="{Binding ResultDetail}"
                            FontSize="13"
                            Foreground="#666666"
                            TextWrapping="Wrap"
@@ -98,10 +95,12 @@
                 Margin="0,30,0,0">
 
             <CheckBox x:Name="LaunchApplicationCheckBox"
-                  Content="セットアップ終了後にアプリケーションを起動する"
-                  FontSize="13"
-                  IsChecked="True"/>
-
+                      Content="セットアップ終了後にアプリケーションを起動する"
+                      FontSize="13"
+                      IsChecked="True"
+                      Visibility="{Binding ShowLaunchOption,
+                          Converter={StaticResource BooleanToVisibilityConverter}}"/>
+            
             <TextBlock Text="「完了」をクリックするとセットアップを終了します。"
                    FontSize="12"
                    Foreground="#777777"

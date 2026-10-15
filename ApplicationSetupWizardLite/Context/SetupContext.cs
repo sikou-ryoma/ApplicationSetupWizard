@@ -6,8 +6,10 @@ namespace ApplicationSetupWizardLite.Context
     public class SetupContext
     {
         private readonly AppConfig _appConfig;
-        public string InstallPath { get; set; } = "";
-        public bool CreateShortcut { get; set; } = true;
+
+        public string InstallPath { get; set; }
+        public bool CreateShortcut { get; set; }
+
 
         public SetupContext(AppConfig appConfig)
         {

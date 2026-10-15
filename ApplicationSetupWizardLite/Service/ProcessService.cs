@@ -40,6 +40,7 @@ namespace ApplicationSetupWizardLite.Service
                     _procCtx.NextStep();
                     break;
                 case 3:
+                    
                     // Step 3: Installation
                     _procCtx.NextStep();
                     break;
@@ -84,7 +85,9 @@ namespace ApplicationSetupWizardLite.Service
         // TODO: インストール処理を実装する。ここでは、Payloadフォルダ内のファイルを指定されたインストールパスにコピーする簡単な例。
         public void Install(string installPath)
         {
-            string payloadPath = "Payload";
+            string payloadPath = Path.Combine(
+                AppContext.BaseDirectory,
+                "Payload");
 
             foreach (string file in Directory.GetFiles(
                 payloadPath,
@@ -106,5 +109,50 @@ namespace ApplicationSetupWizardLite.Service
             }
         }
 
+        public async Task InstallAsync(
+            string installPath,
+            IProgress<InstallProgress> progress)
+        {
+            string payloadPath = Path.Combine(
+                AppContext.BaseDirectory,
+                "Payload");
+
+            string[] files = Directory.GetFiles(
+                payloadPath,
+                "*",
+                SearchOption.AllDirectories);
+
+            int total = files.Length;
+            int completed = 0;
+
+            foreach (string file in files)
+            {
+                string relativePath = Path.GetRelativePath(
+                    payloadPath, file);
+
+                string destination = Path.Combine(
+                    installPath, relativePath);
+
+                Directory.CreateDirectory(
+                    Path.GetDirectoryName(destination)!);
+
+                File.Copy(file, destination, true);
+
+                completed++;
+
+                int percent = total == 0
+                    ? 100
+                    : completed * 100 / total;
+
+                progress.Report(new InstallProgress
+                {
+                    Percent = percent,
+                    Status = "ファイルをコピーしています...",
+                    Detail = $"{completed} / {total} ファイル"
+                });
+
+                await Task.Yield();
+            }
+        }
     }
 }

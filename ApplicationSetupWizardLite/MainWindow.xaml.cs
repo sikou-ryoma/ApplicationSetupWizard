@@ -25,6 +25,8 @@ namespace ApplicationSetupWizardLite
         private AppConfig appConf;
         private StepViewState stepViewState = new StepViewState();
         private InstallLocationViewModel installLocationViewModel;
+        private InstallingViewModel installingViewModel;
+        private SetupResult setupResult = new SetupResult();
         private readonly string[] stepTexts =
         {
             "ようこそ",
@@ -48,6 +50,7 @@ namespace ApplicationSetupWizardLite
 
             setupCtx.InstallPath = paths.defaultInstallPath;
             installLocationViewModel = new InstallLocationViewModel(setupCtx);
+            installingViewModel = new InstallingViewModel(procService);
 
         }
 
@@ -80,6 +83,7 @@ namespace ApplicationSetupWizardLite
                         NextButtonText = "次へ ＞",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = false,
+                        CanGoNext = true,
                         ShowCancel = true,
                         ShowBack = true
                     };
@@ -91,6 +95,7 @@ namespace ApplicationSetupWizardLite
                         NextButtonText = "次へ ＞",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = true,
+                        CanGoNext = true,
                         ShowCancel = true,
                         ShowBack = true
                     };
@@ -102,6 +107,7 @@ namespace ApplicationSetupWizardLite
                         NextButtonText = "インストール",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = true,
+                        CanGoNext = true,
                         ShowCancel = true,
                         ShowBack = true
                     };
@@ -109,10 +115,11 @@ namespace ApplicationSetupWizardLite
                 case 3:
                     return new StepViewState
                     {
-                        View = new InstallingView(appConf),
+                        View = new InstallingView(appConf, installingViewModel),
                         NextButtonText = "インストール",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = false,
+                        CanGoNext = false,
                         ShowCancel = true,
                         ShowBack = false
                     };
@@ -120,9 +127,10 @@ namespace ApplicationSetupWizardLite
                 case 4:
                     return new StepViewState
                     {
-                        View = new CompleteView(appConf),
+                        View = new CompleteView(appConf, setupResult),
                         NextButtonText = "完了",
                         CanGoBack = false,
+                        CanGoNext = true,
                         ShowCancel = false,
                         ShowBack = false
                     };
@@ -142,6 +150,8 @@ namespace ApplicationSetupWizardLite
             ContentArea.Content = state.View;
             NextButton.Content = state.NextButtonText;
             BackButton.IsEnabled = state.CanGoBack;
+            NextButton.IsEnabled = state.CanGoNext;
+
             CancelButton.Visibility =
                 state.ShowCancel ? Visibility.Visible : Visibility.Collapsed;
             BackButton.Visibility =
@@ -150,7 +160,7 @@ namespace ApplicationSetupWizardLite
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (procCtx.currentStep == 3)
+            if (setupResult.IsSuccess == false)
             {
                 var result = System.Windows.MessageBox.Show(
                     "インストール中です。中止すると不完全な状態で終了します。\n本当に中止しますか？",
@@ -163,7 +173,7 @@ namespace ApplicationSetupWizardLite
                     e.Cancel = true;
                 }
             }
-            else
+            else 
                 if (!procCtx.IsCompleted)
             {
                 var result = System.Windows.MessageBox.Show(
@@ -184,7 +194,7 @@ namespace ApplicationSetupWizardLite
             this.Close();
         }
 
-        private void NextButton_Click(object sender, RoutedEventArgs e)
+        private async void NextButton_Click(object sender, RoutedEventArgs e)
         {
             if (procCtx.IsCompleted)
             {
@@ -200,13 +210,8 @@ namespace ApplicationSetupWizardLite
             {
                 procService.NextProcess();
 
-                // procService.Install(setupCtx.InstallPath);
-                System.Windows.MessageBox.Show(
-                    "インストールが完了しました。", 
-                    "テスト用メッセージ", 
-                    MessageBoxButton.OK, 
-                    MessageBoxImage.Information
-                );
+                setupResult = await installingViewModel.StartInstallAsync(
+                    setupCtx.GetFullInstallPath(setupCtx.InstallPath));
 
                 GetStepMessages();
                 ChangeContent(procCtx.currentStep);
