@@ -88,6 +88,7 @@ namespace ApplicationSetupWizardLite.ViewModels
                 Progress = 100;
                 Status = "インストールが完了しました。";
                 Detail = "すべての処理が正常に終了しました。";
+                await Task.Delay(1000);
 
                 return new SetupResult
                 {
@@ -100,6 +101,7 @@ namespace ApplicationSetupWizardLite.ViewModels
             {
                 Status = "インストールがキャンセルされました。";
                 Detail = "インストール処理を中断しました。";
+                await Task.Delay(1000);
 
                 return new SetupResult
                 {
@@ -111,6 +113,7 @@ namespace ApplicationSetupWizardLite.ViewModels
             catch (Exception ex)
             {
                 Status = "インストールに失敗しました。";
+                await Task.Delay(1000);
                 Detail = ex.Message;
 
                 return new SetupResult

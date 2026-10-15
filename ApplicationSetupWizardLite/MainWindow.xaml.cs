@@ -16,17 +16,26 @@ namespace ApplicationSetupWizardLite
     /// </summary>
     public partial class MainWindow : Window
     {
+        // configuration
+        private AppConfig appConf;
+        private XmlHelper xml;
         private PathManager paths =     
             new PathManager(Path.GetFullPath(AppContext.BaseDirectory));
-        private XmlHelper xml;
+
+        // context
         private ProcessContext procCtx = new ProcessContext();
-        private SetupContext setupCtx;
-        private ProcessService procService;
-        private AppConfig appConf;
         private StepViewState stepViewState = new StepViewState();
+        private SetupContext setupCtx;
+        private SetupResult setupResult = new SetupResult();
+
+        // view models
         private InstallLocationViewModel installLocationViewModel;
         private InstallingViewModel installingViewModel;
-        private SetupResult setupResult = new SetupResult();
+
+        // services
+        private ProcessService procService;
+
+        // texts for steps
         private readonly string[] stepTexts =
         {
             "ようこそ",
@@ -39,20 +48,25 @@ namespace ApplicationSetupWizardLite
         public MainWindow()
         {
             InitializeComponent();
+
             xml = new XmlHelper(paths.xmlFilePath);
             appConf = new AppConfig(xml);
             setupCtx = new SetupContext(appConf);
             procService = new ProcessService(xml, procCtx, setupCtx);
+
             GetStepMessages();
             ChangeContent(procCtx.currentStep);
+
             AppNameLbl1.Text = appConf.appName;
             VersionLbl.Text = "Version " + appConf.appVersion;
-
             setupCtx.InstallPath = paths.defaultInstallPath;
+
             installLocationViewModel = new InstallLocationViewModel(setupCtx);
             installingViewModel = new InstallingViewModel(procService);
 
         }
+
+        // 左側ステップテキストのステータス
 
         private string GetStepStatus(int step)
         {
@@ -71,6 +85,8 @@ namespace ApplicationSetupWizardLite
             Step4.Text = GetStepStatus(3);
             Step5.Text = GetStepStatus(4);
         }
+
+        // 画面遷移時の状態設定
 
         private StepViewState GetStepState(int step)
         {
@@ -91,7 +107,8 @@ namespace ApplicationSetupWizardLite
                 case 1:
                     return new StepViewState
                     {
-                        View = new InstallLocationView(appConf, xml, paths, procCtx, setupCtx, installLocationViewModel),
+                        View = new InstallLocationView(
+                            appConf, xml, paths, procCtx, setupCtx, installLocationViewModel),
                         NextButtonText = "次へ ＞",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = true,
@@ -138,6 +155,8 @@ namespace ApplicationSetupWizardLite
             throw new ArgumentOutOfRangeException(nameof(step));
         }
 
+        // 画面遷移実行メソッド
+
         private void ChangeContent(int step)
         {
             if (step == 1 || step == 2)
@@ -157,6 +176,8 @@ namespace ApplicationSetupWizardLite
             BackButton.Visibility =
                 state.ShowBack ? Visibility.Visible : Visibility.Collapsed;
         }
+
+        // 以下コントロールのイベントハンドラ
 
         private bool _cancelRequested;
 
