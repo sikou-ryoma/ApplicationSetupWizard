@@ -82,76 +82,99 @@ namespace ApplicationSetupWizardLite.Service
             }
         }
 
-        // TODO: インストール処理を実装する。ここでは、Payloadフォルダ内のファイルを指定されたインストールパスにコピーする簡単な例。
-        public void Install(string installPath)
-        {
-            string payloadPath = Path.Combine(
-                AppContext.BaseDirectory,
-                "Payload");
-
-            foreach (string file in Directory.GetFiles(
-                payloadPath,
-                "*",
-                SearchOption.AllDirectories))
-            {
-                string relativePath = Path.GetRelativePath(
-                    payloadPath,
-                    file);
-
-                string destination = Path.Combine(
-                    installPath,
-                    relativePath);
-
-                Directory.CreateDirectory(
-                    Path.GetDirectoryName(destination)!);
-
-                File.Copy(file, destination, true);
-            }
-        }
-
         public async Task InstallAsync(
             string installPath,
-            IProgress<InstallProgress> progress)
+            IProgress<InstallProgress> progress,
+            CancellationToken cancellationToken)
         {
             string payloadPath = Path.Combine(
                 AppContext.BaseDirectory,
                 "Payload");
 
-            string[] files = Directory.GetFiles(
-                payloadPath,
-                "*",
-                SearchOption.AllDirectories);
+            string? parentPath = Path.GetDirectoryName(
+                Path.TrimEndingDirectorySeparator(installPath));
 
-            int total = files.Length;
-            int completed = 0;
-
-            foreach (string file in files)
+            if (string.IsNullOrWhiteSpace(parentPath))
             {
-                string relativePath = Path.GetRelativePath(
-                    payloadPath, file);
+                throw new InvalidOperationException(
+                    "インストール先の親フォルダを取得できません。");
+            }
 
-                string destination = Path.Combine(
-                    installPath, relativePath);
+            string tempPath = installPath + ".installing";
 
-                Directory.CreateDirectory(
-                    Path.GetDirectoryName(destination)!);
+            if (Directory.Exists(tempPath))
+            {
+                throw new IOException(
+                    $"一時フォルダが既に存在します: {tempPath}");
+            }
 
-                File.Copy(file, destination, true);
+            Directory.CreateDirectory(parentPath);
+            Directory.CreateDirectory(tempPath);
 
-                completed++;
+            bool copyCompleted = false;
 
-                int percent = total == 0
-                    ? 100
-                    : completed * 100 / total;
+            try
+            {
+                string[] files = Directory.GetFiles(
+                    payloadPath,
+                    "*",
+                    SearchOption.AllDirectories);
 
-                progress.Report(new InstallProgress
+                int total = files.Length;
+                int completed = 0;
+
+                foreach (string file in files)
                 {
-                    Percent = percent,
-                    Status = "ファイルをコピーしています...",
-                    Detail = $"{completed} / {total} ファイル"
-                });
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                await Task.Yield();
+                    string relativePath = Path.GetRelativePath(
+                        payloadPath,
+                        file);
+
+                    string destination = Path.Combine(
+                        tempPath,
+                        relativePath);
+
+                    Directory.CreateDirectory(
+                        Path.GetDirectoryName(destination)!);
+
+                    File.Copy(file, destination);
+
+                    completed++;
+
+                    int percent = total == 0
+                        ? 100
+                        : completed * 100 / total;
+
+                    progress.Report(new InstallProgress
+                    {
+                        Percent = percent,
+                        Status = "一時フォルダにファイルをコピーしています...",
+                        Detail = $"{completed} / {total} ファイル"
+                    });
+
+                    await Task.Yield();
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // 正式な配置先が既に存在する場合は上書きしない
+                if (Directory.Exists(installPath) || File.Exists(installPath))
+                {
+                    throw new IOException(
+                        $"インストール先が既に存在します: {installPath}");
+                }
+
+                // 一時フォルダを正式な配置先へ切り替える
+                Directory.Move(tempPath, installPath);
+                copyCompleted = true;
+            }
+            finally
+            {
+                if (!copyCompleted && Directory.Exists(tempPath))
+                {
+                    Directory.Delete(tempPath, recursive: true);
+                }
             }
         }
     }

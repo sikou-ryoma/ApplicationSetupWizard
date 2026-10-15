@@ -10,9 +10,8 @@ namespace ApplicationSetupWizardLite.ViewModels
     public class InstallingViewModel : INotifyPropertyChanged
     {
         private readonly ProcessService _installService;
-
         public event PropertyChangedEventHandler? PropertyChanged;
-
+        private CancellationTokenSource? _installCts;
 
         // コンストラクタ
         public InstallingViewModel(ProcessService installService)
@@ -69,11 +68,11 @@ namespace ApplicationSetupWizardLite.ViewModels
             Progress = 0;
             Status = "インストールを開始しています...";
             Detail = "準備中です。";
+            _installCts = new CancellationTokenSource();
             await Task.Delay(2000); // UIの更新を待つために少し待機
 
             try
             {
-                // Serviceから届く進捗情報を受け取る
                 var progress = new Progress<InstallProgress>(p =>
                 {
                     Progress = p.Percent;
@@ -81,39 +80,50 @@ namespace ApplicationSetupWizardLite.ViewModels
                     Detail = p.Detail;
                 });
 
-                // インストール処理を実行
                 await _installService.InstallAsync(
                     installPath,
-                    progress);
-                
-                // 正常終了
+                    progress,
+                    _installCts.Token);
+
                 Progress = 100;
                 Status = "インストールが完了しました。";
                 Detail = "すべての処理が正常に終了しました。";
-                await Task.Delay(500); // UIの更新を待つために少し待機
 
-                return new SetupResult()
+                return new SetupResult
                 {
-                    IsSuccess = true,
-                    StatusText = "インストールが完了しました。",
-                    DetailText = "すべての処理が正常に終了しました。"
+                    Status = SetupStatus.Success,
+                    StatusText = Status,
+                    DetailText = Detail
+                };
+            }
+            catch (OperationCanceledException)
+            {
+                Status = "インストールがキャンセルされました。";
+                Detail = "インストール処理を中断しました。";
+
+                return new SetupResult
+                {
+                    Status = SetupStatus.Cancelled,
+                    StatusText = Status,
+                    DetailText = Detail
                 };
             }
             catch (Exception ex)
             {
-                // エラー発生時
                 Status = "インストールに失敗しました。";
                 Detail = ex.Message;
 
-                return new SetupResult()
+                return new SetupResult
                 {
-                    IsSuccess = false,
-                    StatusText = "インストールに失敗しました。",
-                    DetailText = ex.Message
+                    Status = SetupStatus.Failed,
+                    StatusText = Status,
+                    DetailText = Detail
                 };
             }
             finally
             {
+                _installCts?.Dispose();
+                _installCts = null;
                 IsInstalling = false;
             }
         }
@@ -135,6 +145,15 @@ namespace ApplicationSetupWizardLite.ViewModels
                 new PropertyChangedEventArgs(propertyName));
 
             return true;
+        }
+
+        // インストールのキャンセル要求
+        public void CancelInstall()
+        {
+            if (IsInstalling)
+            {
+                _installCts?.Cancel();
+            }
         }
     }
 }

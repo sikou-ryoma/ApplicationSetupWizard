@@ -14,11 +14,22 @@ namespace ApplicationSetupWizardLite.ViewModels
         private string _resultTitle = "";
         private string _resultDetail = "";
         private bool _canLaunchApplication;
-        public string ResultSymbol => IsSuccess ? "✓" : "!";
-        public string ResultBackground =>
-            IsSuccess ? "#4CAF50" : "#D9534F";
-        public bool ShowLaunchOption => IsSuccess;
+        private SetupStatus _status;
+        public string ResultSymbol => _status switch
+        {
+            SetupStatus.Success => "✓",
+            SetupStatus.Cancelled => "Ⅱ",
+            _ => "!"
+        };
 
+        public string ResultBackground => _status switch
+        {
+            SetupStatus.Success => "#4CAF50",
+            SetupStatus.Cancelled => "#E0A020",
+            _ => "#D9534F"
+        };
+
+        public bool ShowLaunchOption => _status == SetupStatus.Success;
 
         public bool IsSuccess
         {
@@ -72,15 +83,29 @@ namespace ApplicationSetupWizardLite.ViewModels
 
         public CompleteViewModel(SetupResult result)
         {
+            _status = result.Status;
             IsSuccess = result.IsSuccess;
-            Description = result.IsSuccess
-                ? "アプリケーションのインストールが正常に完了しました。"
-                : "アプリケーションのインストール中に問題が発生しました。";
+
+            Description = result.Status switch
+            {
+                SetupStatus.Success =>
+                    "アプリケーションのインストールが正常に完了しました。",
+
+                SetupStatus.Cancelled =>
+                    "インストールはキャンセルされました。",
+
+                _ =>
+                    "アプリケーションのインストール中に問題が発生しました。"
+            };
 
             ResultTitle = result.StatusText;
             ResultDetail = result.DetailText;
 
             CanLaunchApplication = result.IsSuccess;
+
+            OnPropertyChanged(nameof(ResultSymbol));
+            OnPropertyChanged(nameof(ResultBackground));
+            OnPropertyChanged(nameof(ShowLaunchOption));
         }
 
         private void OnPropertyChanged(

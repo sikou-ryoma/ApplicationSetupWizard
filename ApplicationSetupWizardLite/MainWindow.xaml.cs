@@ -158,30 +158,44 @@ namespace ApplicationSetupWizardLite
                 state.ShowBack ? Visibility.Visible : Visibility.Collapsed;
         }
 
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private bool _cancelRequested;
+
+        private void Window_Closing(
+            object sender,
+            System.ComponentModel.CancelEventArgs e)
         {
-            if (setupResult.IsSuccess == false)
+            // インストール中の場合
+            if (installingViewModel?.IsInstalling == true)
             {
                 var result = System.Windows.MessageBox.Show(
-                    "インストール中です。中止すると不完全な状態で終了します。\n本当に中止しますか？",
+                    "インストール中です。中止しますか？",
                     "確認",
                     MessageBoxButton.YesNo,
-                    MessageBoxImage.Warning
-                );
+                    MessageBoxImage.Warning);
+
                 if (result == MessageBoxResult.No)
                 {
                     e.Cancel = true;
+                    return;
                 }
+
+                // ウィンドウはまだ閉じず、キャンセルを要求する
+                _cancelRequested = true;
+                e.Cancel = true;
+
+                installingViewModel.CancelInstall();
+                return;
             }
-            else 
-                if (!procCtx.IsCompleted)
+
+            // セットアップが完了していない場合
+            if (!procCtx.IsCompleted)
             {
                 var result = System.Windows.MessageBox.Show(
                     "セットアップを中止しますか？",
                     "確認",
                     MessageBoxButton.YesNo,
-                    MessageBoxImage.Question
-                );
+                    MessageBoxImage.Question);
+
                 if (result == MessageBoxResult.No)
                 {
                     e.Cancel = true;
@@ -194,11 +208,13 @@ namespace ApplicationSetupWizardLite
             this.Close();
         }
 
-        private async void NextButton_Click(object sender, RoutedEventArgs e)
+        private async void NextButton_Click(
+            object sender,
+            RoutedEventArgs e)
         {
             if (procCtx.IsCompleted)
             {
-                this.Close();
+                Close();
                 return;
             }
 
@@ -206,13 +222,23 @@ namespace ApplicationSetupWizardLite
             GetStepMessages();
             ChangeContent(procCtx.currentStep);
 
-            if(procCtx.currentStep == 3)
+            if (procCtx.currentStep == 3)
             {
                 procService.NextProcess();
 
                 setupResult = await installingViewModel.StartInstallAsync(
                     setupCtx.GetFullInstallPath(setupCtx.InstallPath));
 
+                if (setupResult.Status == SetupStatus.Cancelled)
+                {
+                    if (_cancelRequested)
+                    {
+                        Close();
+                        return;
+                    }
+                }
+
+                // 結果に応じて完了画面へ進む
                 GetStepMessages();
                 ChangeContent(procCtx.currentStep);
             }
