@@ -9,6 +9,8 @@ namespace ApplicationSetupWizardLite.Context
 
         public string InstallPath { get; set; }
 
+        public string PayloadSizeText { get; set; }
+
         public bool CreateShortcut { get; set; }
 
 
@@ -16,6 +18,7 @@ namespace ApplicationSetupWizardLite.Context
         {
             _appConfig = appConfig;
             InstallPath = "";
+            PayloadSizeText = "";
             CreateShortcut = true;
         }
 

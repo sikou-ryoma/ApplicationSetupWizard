@@ -108,7 +108,7 @@
         <StackPanel Grid.Row="4"
                 Margin="0,30,0,0">
 
-            <TextBlock Text="必要なディスク容量："
+            <TextBlock Text="インストールデータ容量："
                     FontSize="12"
                     Foreground="#555555"/>
 
