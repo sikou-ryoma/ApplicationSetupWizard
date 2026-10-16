@@ -25,8 +25,9 @@ namespace ApplicationSetupWizardLite.Views
         {
             InitializeComponent();
             _appConf = appConf;
-            TitleTextBlock.Text = $"{_appConf.appName} セットアップ";
-            ContentTextBlock.Text = $"{_appConf.appName} をコンピューターにインストールします。";
+
+            TitleTextBlock.Text = $"{_appConf.targetAppName} v{ _appConf.targetAppVersion} セットアップ";
+            ContentTextBlock.Text = $"{_appConf.targetAppName} をコンピューターにインストールします。";
         }
     }
 }

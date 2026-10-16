@@ -27,9 +27,9 @@ namespace ApplicationSetupWizardLite.Context
 
             return System.IO.Path.Combine(
                 baseInstallPath,
-                _appConfig.companyName,
-                _appConfig.appName,
-                _appConfig.appVersion
+                _appConfig.targetCompanyName,
+                _appConfig.targetAppName,
+                _appConfig.targetAppVersion
             );
         }
     }

@@ -12,26 +12,14 @@ namespace ApplicationSetupWizardLite.Views
     /// </summary>
     public partial class InstallLocationView : UserControl
     {
-        private readonly AppConfig _appConfig;
-        private readonly XmlHelper _xmlHelper;
-        private PathManager _paths;
-        private ProcessContext _procCtx;
         private SetupContext _setupCtx;
         private InstallLocationViewModel _viewModel;
 
         public InstallLocationView(
-            AppConfig appConfig,
-            XmlHelper xmlHelper,
-            PathManager paths,
-            ProcessContext processContext,
             SetupContext setupCtx,
             InstallLocationViewModel viewModel)
         {
             InitializeComponent();
-            _appConfig = appConfig;
-            _xmlHelper = xmlHelper;
-            _paths = paths;
-            _procCtx = processContext;
             _setupCtx = setupCtx;
             _viewModel = viewModel;
             DataContext = _viewModel;
@@ -45,13 +33,14 @@ namespace ApplicationSetupWizardLite.Views
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog();
             System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+
             if (result == System.Windows.Forms.DialogResult.OK)
             {
                 _viewModel.InstallPath = dialog.SelectedPath;
                 InstallPathTextBox.Text = _viewModel.InstallPath;
+
                 _viewModel.FullInstallPath = _setupCtx.GetFullInstallPath(_viewModel.InstallPath);
                 FolderStructureText.Text = _viewModel.FullInstallPath;
-
             }
         }
     }

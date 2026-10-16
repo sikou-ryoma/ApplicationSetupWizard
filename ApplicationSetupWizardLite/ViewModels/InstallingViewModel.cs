@@ -13,7 +13,7 @@ namespace ApplicationSetupWizardLite.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
         private CancellationTokenSource? _installCts;
 
-        // コンストラクタ
+        
         public InstallingViewModel(ProcessService installService)
         {
             _installService = installService;

@@ -57,8 +57,8 @@ namespace ApplicationSetupWizardLite
             GetStepMessages();
             ChangeContent(procCtx.currentStep);
 
-            AppNameLbl1.Text = appConf.appName;
-            VersionLbl.Text = "Version " + appConf.appVersion;
+            AppNameLbl1.Text = appConf.targetAppName + " v" + appConf.targetAppVersion;
+            VersionLbl.Text = "Installer Version " + appConf.appVersion;
             setupCtx.InstallPath = paths.defaultInstallPath;
 
             installLocationViewModel = new InstallLocationViewModel(setupCtx);
@@ -66,7 +66,7 @@ namespace ApplicationSetupWizardLite
 
         }
 
-        // 左側ステップテキストのステータス
+        // 左側ステップテキストのステータス取得
 
         private string GetStepStatus(int step)
         {
@@ -86,7 +86,7 @@ namespace ApplicationSetupWizardLite
             Step5.Text = GetStepStatus(4);
         }
 
-        // 画面遷移時の状態設定
+        // 画面遷移時の状態設定の取得
 
         private StepViewState GetStepState(int step)
         {
@@ -107,8 +107,7 @@ namespace ApplicationSetupWizardLite
                 case 1:
                     return new StepViewState
                     {
-                        View = new InstallLocationView(
-                            appConf, xml, paths, procCtx, setupCtx, installLocationViewModel),
+                        View = new InstallLocationView(setupCtx, installLocationViewModel),
                         NextButtonText = "次へ ＞",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = true,
@@ -177,7 +176,9 @@ namespace ApplicationSetupWizardLite
                 state.ShowBack ? Visibility.Visible : Visibility.Collapsed;
         }
 
+
         // 以下コントロールのイベントハンドラ
+        // ===============================
 
         private bool _cancelRequested;
 

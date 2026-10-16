@@ -1,11 +1,28 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 
 <Config>
+	
 	<App>
 		<Meta>
-			<AppName>Application</AppName>
+			<AppName>InstallWizard</AppName>
 			<AppVersion>0.9.0</AppVersion>
 			<CompanyName>Company</CompanyName>
 		</Meta>
 	</App>
+	
+	<Payload>
+		<App>
+			<Meta>
+				<AppName>MyApp</AppName>
+				<AppVersion>1.0.0</AppVersion>
+				<CompanyName>KAISYA</CompanyName>
+			</Meta>
+		</App>
+
+		<Files>
+			<File>app.exe</File>
+			<File>config.xml</File>
+		</Files>
+	</Payload>
+	
 </Config>

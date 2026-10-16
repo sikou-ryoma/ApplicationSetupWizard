@@ -23,16 +23,16 @@ namespace ApplicationSetupWizardLite.Views
             _paths = paths;
             _procCtx = procCtx;
             _setupCtx = setupCtx;
-            ApplicationNameText.Text = _appConfig.appName;
+            ApplicationNameText.Text = _appConfig.targetAppName;
             UpdateConfirmView();
         }
         public void UpdateConfirmView()
         {
             InstallPathText.Text = Path.Combine(
                     _setupCtx.InstallPath,
-                    _appConfig.companyName,
-                    _appConfig.appName,
-                    _appConfig.appVersion
+                    _appConfig.targetCompanyName,
+                    _appConfig.targetAppName,
+                    _appConfig.targetAppVersion
             );
             ShortcutText.Text = _setupCtx.CreateShortcut ? "ショートカットを作成する" : "作成しない";
         }
