@@ -11,17 +11,11 @@ namespace ApplicationSetupWizardLite.Views
     public partial class ConfirmView : System.Windows.Controls.UserControl
     {
         private readonly AppConfig _appConfig;
-        private readonly XmlHelper _xmlHelper;
-        private PathManager _paths;
-        private ProcessContext _procCtx;
         private SetupContext _setupCtx;
-        public ConfirmView(AppConfig appConfig, XmlHelper xmlHelper, PathManager paths, ProcessContext procCtx, SetupContext setupCtx)
+        public ConfirmView(AppConfig appConfig, SetupContext setupCtx)
         {
             InitializeComponent();
             _appConfig = appConfig;
-            _xmlHelper = xmlHelper;
-            _paths = paths;
-            _procCtx = procCtx;
             _setupCtx = setupCtx;
             ApplicationNameText.Text = _appConfig.targetAppName;
             UpdateConfirmView();

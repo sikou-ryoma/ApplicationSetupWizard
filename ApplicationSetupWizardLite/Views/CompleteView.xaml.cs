@@ -9,13 +9,11 @@ namespace ApplicationSetupWizardLite.Views
     /// </summary>
     public partial class CompleteView : System.Windows.Controls.UserControl
     {
-        private readonly AppConfig _appConfig;
         public CompleteView(AppConfig appConfig, SetupResult result)
         {
             InitializeComponent();
-            _appConfig = appConfig;
+
             DataContext = new CompleteViewModel(result);
-            // DescriptionText.Text = $"{_appConfig.appName} のインストールが正常に完了しました。";
         }
     }
 }

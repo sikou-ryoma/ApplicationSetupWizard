@@ -8,12 +8,10 @@ namespace ApplicationSetupWizardLite.Views
     /// </summary>
     public partial class InstallingView : System.Windows.Controls.UserControl
     {
-        private readonly AppConfig _appConfig;
         private InstallingViewModel _viewModel;
-        public InstallingView(AppConfig appConfig, InstallingViewModel viewModel)
+        public InstallingView(InstallingViewModel viewModel)
         {
             InitializeComponent();
-            _appConfig = appConfig;
             _viewModel = viewModel;
             DataContext = _viewModel;
         }

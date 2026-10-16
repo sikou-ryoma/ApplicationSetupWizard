@@ -119,7 +119,7 @@ namespace ApplicationSetupWizardLite
                 case 2:
                     return new StepViewState
                     {
-                        View = new ConfirmView(appConf, xml, paths, procCtx, setupCtx),
+                        View = new ConfirmView(appConf, setupCtx),
                         NextButtonText = "インストール",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = true,
@@ -131,7 +131,7 @@ namespace ApplicationSetupWizardLite
                 case 3:
                     return new StepViewState
                     {
-                        View = new InstallingView(appConf, installingViewModel),
+                        View = new InstallingView(installingViewModel),
                         NextButtonText = "インストール",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = false,
