@@ -11,6 +11,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Payload\Config\**" />
+    <EmbeddedResource Remove="Payload\Config\**" />
+    <None Remove="Payload\Config\**" />
+    <Page Remove="Payload\Config\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Conf\config.xml" />
     <None Remove="Payload\sample\sample.txt" />
     <None Remove="Payload\test.txt" />
