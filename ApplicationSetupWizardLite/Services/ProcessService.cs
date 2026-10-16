@@ -1,7 +1,7 @@
 ﻿using ApplicationSetupWizardLite.Context;
 using System.IO;
 
-namespace ApplicationSetupWizardLite.Service
+namespace ApplicationSetupWizardLite.Services
 {
     public class ProcessService
     {

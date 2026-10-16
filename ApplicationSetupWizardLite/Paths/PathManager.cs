@@ -8,7 +8,7 @@ namespace ApplicationSetupWizardLite.Paths
         public string xmlFilePath { get; }
         // public string excelBookDirPath { get; }
         // public string logDirPath { get; }
-        public string defaultInstallPath { get; set; }
+        public string defaultInstallPath { get; }
 
         public PathManager(string baseDir)
         {

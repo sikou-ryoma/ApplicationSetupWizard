@@ -17,12 +17,10 @@
 				<AppVersion>1.0.0</AppVersion>
 				<CompanyName>KAISYA</CompanyName>
 			</Meta>
+			<Files>
+				<ExeFile>BusinessApp.exe</ExeFile>
+			</Files>
 		</App>
-
-		<Files>
-			<File>app.exe</File>
-			<File>config.xml</File>
-		</Files>
 	</Payload>
 	
 </Config>

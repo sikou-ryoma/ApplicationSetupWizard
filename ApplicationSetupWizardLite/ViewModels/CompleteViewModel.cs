@@ -14,7 +14,9 @@ namespace ApplicationSetupWizardLite.ViewModels
         private string _resultTitle = "";
         private string _resultDetail = "";
         private bool _canLaunchApplication;
+        private bool _launchApplication = true;
         private SetupStatus _status;
+
         public string ResultSymbol => _status switch
         {
             SetupStatus.Success => "✓",
@@ -81,6 +83,20 @@ namespace ApplicationSetupWizardLite.ViewModels
             }
         }
 
+        public bool LaunchApplication
+        {
+            get => _launchApplication;
+            set
+            {
+                if (_launchApplication == value)
+                    return;
+
+                _launchApplication = value;
+                OnPropertyChanged();
+            }
+        }
+
+
         public CompleteViewModel(SetupResult result)
         {
             _status = result.Status;
@@ -100,8 +116,12 @@ namespace ApplicationSetupWizardLite.ViewModels
 
             ResultTitle = result.StatusText;
             ResultDetail = result.DetailText;
-
             CanLaunchApplication = result.IsSuccess;
+
+            if (result.Status != SetupStatus.Success)
+            {
+                LaunchApplication = false;
+            }
 
             OnPropertyChanged(nameof(ResultSymbol));
             OnPropertyChanged(nameof(ResultBackground));

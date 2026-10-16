@@ -96,10 +96,10 @@
         <StackPanel Grid.Row="3"
                 Margin="0,30,0,0">
 
-            <CheckBox x:Name="LaunchApplicationCheckBox"
-                      Content="セットアップ終了後にアプリケーションを起動する"
+            <CheckBox Content="アプリケーションを起動する"
                       FontSize="13"
-                      IsChecked="True"
+                      IsChecked="{Binding LaunchApplication, Mode=TwoWay}"
+                      IsEnabled="{Binding CanLaunchApplication}"
                       Visibility="{Binding ShowLaunchOption,
                           Converter={StaticResource BooleanToVisibilityConverter}}"/>
             

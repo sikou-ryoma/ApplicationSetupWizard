@@ -13,6 +13,7 @@
         public string targetAppName { get; }
         public string targetAppVersion { get; }
         public string targetCompanyName { get; }
+        public string executableName { get; }
 
 
         public AppConfig(XmlHelper xmlHelper)
@@ -26,6 +27,7 @@
             targetAppName = _xmlHelper.GetString("Payload", "App", "Meta", "AppName");
             targetAppVersion = _xmlHelper.GetString("Payload", "App", "Meta", "AppVersion");
             targetCompanyName = _xmlHelper.GetString("Payload", "App", "Meta", "CompanyName");
+            executableName  = _xmlHelper.GetString("Payload", "App", "Files", "ExeFile");
         }
     }
 }

@@ -2,7 +2,7 @@
 using ApplicationSetupWizardLite.Context;
 using ApplicationSetupWizardLite.Navigation;
 using ApplicationSetupWizardLite.Paths;
-using ApplicationSetupWizardLite.Service;
+using ApplicationSetupWizardLite.Services;
 using ApplicationSetupWizardLite.Views;
 using ApplicationSetupWizardLite.ViewModels;
 using System.IO;
@@ -34,8 +34,10 @@ namespace ApplicationSetupWizardLite
 
         // services
         private ProcessService procService;
+        private ShortcutService shortcutService = new ShortcutService();
+        private ApplicationLaunchService launchService = new ApplicationLaunchService();
 
-        // texts for steps
+        // strings
         private readonly string[] stepTexts =
         {
             "ようこそ",
@@ -44,6 +46,8 @@ namespace ApplicationSetupWizardLite
             "インストール",
             "完了"
         };
+
+        private string exePath = string.Empty;
 
         public MainWindow()
         {
@@ -143,7 +147,7 @@ namespace ApplicationSetupWizardLite
                 case 4:
                     return new StepViewState
                     {
-                        View = new CompleteView(appConf, setupResult),
+                        View = new CompleteView(setupResult),
                         NextButtonText = "完了",
                         CanGoBack = false,
                         CanGoNext = true,
@@ -180,7 +184,7 @@ namespace ApplicationSetupWizardLite
         // 以下コントロールのイベントハンドラ
         // ===============================
 
-        private bool _cancelRequested;
+        private bool cancelRequested;
 
         private void Window_Closing(
             object sender,
@@ -202,7 +206,7 @@ namespace ApplicationSetupWizardLite
                 }
 
                 // ウィンドウはまだ閉じず、キャンセルを要求する
-                _cancelRequested = true;
+                cancelRequested = true;
                 e.Cancel = true;
 
                 installingViewModel.CancelInstall();
@@ -234,8 +238,18 @@ namespace ApplicationSetupWizardLite
             object sender,
             RoutedEventArgs e)
         {
+            // インストール完了時
             if (procCtx.IsCompleted)
             {
+                // 完了後の起動確認
+                if (ContentArea.Content is CompleteView completeView)
+                {
+                    if (completeView.viewModel.LaunchApplication)
+                    {
+                        launchService.LaunchTest(exePath);
+                    }
+                }
+
                 Close();
                 return;
             }
@@ -246,18 +260,34 @@ namespace ApplicationSetupWizardLite
 
             if (procCtx.currentStep == 3)
             {
-                procService.NextProcess();
 
+                // インストール処理を開始
+                procService.NextProcess();
+                
                 setupResult = await installingViewModel.StartInstallAsync(
                     setupCtx.GetFullInstallPath(setupCtx.InstallPath));
 
+                // キャンセル処理
                 if (setupResult.Status == SetupStatus.Cancelled)
                 {
-                    if (_cancelRequested)
+                    if (cancelRequested)
                     {
                         Close();
                         return;
                     }
+                }
+
+                // ショートカット作成などの後処理を行う
+                if (installLocationViewModel.CreateShortcut)
+                {
+                    exePath = Path.Combine(
+                        setupCtx.GetFullInstallPath(setupCtx.InstallPath),
+                        // appConf.executableName);
+                        "test.txt");
+
+                    shortcutService.CreateDesktopShortcut(
+                        appConf.targetAppName,
+                        exePath);
                 }
 
                 // 結果に応じて完了画面へ進む

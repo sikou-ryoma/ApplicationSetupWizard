@@ -1,5 +1,5 @@
 ﻿using ApplicationSetupWizardLite.Context;
-using ApplicationSetupWizardLite.Service;
+using ApplicationSetupWizardLite.Services;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
