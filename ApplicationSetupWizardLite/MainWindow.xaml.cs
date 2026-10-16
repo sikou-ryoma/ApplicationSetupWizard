@@ -70,7 +70,10 @@ namespace ApplicationSetupWizardLite
 
         }
 
+        // 基本的な画面表示
+
         // 左側ステップテキストのステータス取得
+        // ===============================
 
         private string GetStepStatus(int step)
         {
@@ -91,6 +94,7 @@ namespace ApplicationSetupWizardLite
         }
 
         // 画面遷移時の状態設定の取得
+        // ===============================
 
         private StepViewState GetStepState(int step)
         {
@@ -159,6 +163,7 @@ namespace ApplicationSetupWizardLite
         }
 
         // 画面遷移実行メソッド
+        // ===============================
 
         private void ChangeContent(int step)
         {
@@ -181,10 +186,12 @@ namespace ApplicationSetupWizardLite
         }
 
 
-        // 以下コントロールのイベントハンドラ
-        // ===============================
+        // 以下コントロールのイベントハンドラと処理の呼び出し
 
-        private bool cancelRequested;
+
+        // キャンセル、閉じるボタンの処理
+        // ===============================
+        private bool _cancelRequested;
 
         private void Window_Closing(
             object sender,
@@ -206,7 +213,7 @@ namespace ApplicationSetupWizardLite
                 }
 
                 // ウィンドウはまだ閉じず、キャンセルを要求する
-                cancelRequested = true;
+                _cancelRequested = true;
                 e.Cancel = true;
 
                 installingViewModel.CancelInstall();
@@ -234,74 +241,100 @@ namespace ApplicationSetupWizardLite
             this.Close();
         }
 
+        // 次へボタンの処理
+
+        // 押下時の挙動
+        // ===============================
         private async void NextButton_Click(
             object sender,
             RoutedEventArgs e)
         {
-            // インストール完了時
             if (procCtx.IsCompleted)
             {
-                // 完了後の起動確認
-                if (ContentArea.Content is CompleteView completeView)
-                {
-                    if (completeView.viewModel.LaunchApplication)
-                    {
-                        launchService.LaunchTest(exePath);
-                    }
-                }
-
+                LaunchApplicationIfNeeded();
                 Close();
                 return;
             }
 
+            if (procCtx.currentStep == 2)
+            {
+                await ExecuteInstallationAsync();
+                // return;
+            }
+
+            MoveToNextStep();
+        }
+
+        // 基本処理
+        // ===============================
+        private void MoveToNextStep()
+        {
             procService.NextProcess();
+
             GetStepMessages();
             ChangeContent(procCtx.currentStep);
+        }
 
-            if (procCtx.currentStep == 3)
+        // インストール処理の実行
+        // ===============================
+        private async Task ExecuteInstallationAsync()
+        {
+            // インストール画面へ移動
+            MoveToNextStep();
+
+            string installPath =
+                setupCtx.GetFullInstallPath(
+                    setupCtx.InstallPath);
+
+            // インストールを実行
+            setupResult =
+                await installingViewModel.StartInstallAsync(
+                    installPath);
+
+            // 失敗時はショートカット作成へ進まない
+            if (setupResult.Status != SetupStatus.Success)
             {
-
-                // インストール処理を開始
-                procService.NextProcess();
-                
-                setupResult = await installingViewModel.StartInstallAsync(
-                    setupCtx.GetFullInstallPath(setupCtx.InstallPath));
-
-                // キャンセル処理
-                if (setupResult.Status == SetupStatus.Cancelled)
-                {
-                    if (cancelRequested)
-                    {
-                        Close();
-                        return;
-                    }
-                }
-
-                // ショートカット作成などの後処理を行う
-                if (installLocationViewModel.CreateShortcut)
-                {
-                    exePath = Path.Combine(
-                        setupCtx.GetFullInstallPath(setupCtx.InstallPath),
-                        // appConf.executableName);
-                        "test.txt");
-
-                    shortcutService.CreateDesktopShortcut(
-                        appConf.targetAppName,
-                        exePath);
-                }
-
-                // 結果に応じて完了画面へ進む
-                GetStepMessages();
                 ChangeContent(procCtx.currentStep);
+                return;
+            }
+
+            // ショートカットを作成する
+            if (installLocationViewModel.CreateShortcut)
+            {
+                exePath = Path.Combine(
+                    setupCtx.GetFullInstallPath(setupCtx.InstallPath),
+                    // appConf.executableName);
+                    "test.txt");
+
+                shortcutService.CreateDesktopShortcut(
+                    appConf.targetAppName + "_v" + appConf.targetAppVersion,
+                    exePath);
+            }
+
+            ChangeContent(procCtx.currentStep);
+        }
+
+        // アプリケーション起動の必要がある場合に起動する
+        // ===============================
+        private void LaunchApplicationIfNeeded()
+        {
+            if (ContentArea.Content is CompleteView completeView)
+            {
+                if (completeView.viewModel.LaunchApplication)
+                {
+                    launchService.LaunchTest(exePath);
+                    // launchService.Launch(exePath);
+                }
             }
         }
 
+        // 戻るボタンの処理
+        // ===============================
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             procService.PreviousProcess();
             GetStepMessages();
             ChangeContent(procCtx.currentStep);
         }
-
     }
 }

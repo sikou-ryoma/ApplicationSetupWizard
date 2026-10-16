@@ -8,6 +8,7 @@ namespace ApplicationSetupWizardLite.Context
         private readonly AppConfig _appConfig;
 
         public string InstallPath { get; set; }
+
         public bool CreateShortcut { get; set; }
 
 

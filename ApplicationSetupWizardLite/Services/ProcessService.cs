@@ -1,5 +1,6 @@
 ﻿using ApplicationSetupWizardLite.Context;
 using System.IO;
+using System.Linq;
 
 namespace ApplicationSetupWizardLite.Services
 {
@@ -8,6 +9,7 @@ namespace ApplicationSetupWizardLite.Services
         private readonly XmlHelper _xmlHelper;
         private readonly ProcessContext _procCtx;
         private readonly SetupContext _setupCtx;
+
 
         public ProcessService(
             XmlHelper xmlHelper,
@@ -81,7 +83,7 @@ namespace ApplicationSetupWizardLite.Services
                     throw new InvalidOperationException("Invalid step index.");
             }
         }
-
+        
         public async Task InstallAsync(
             string installPath,
             IProgress<InstallProgress> progress,
@@ -176,6 +178,38 @@ namespace ApplicationSetupWizardLite.Services
                     Directory.Delete(tempPath, recursive: true);
                 }
             }
+        }
+
+        public long GetPayloadSize(string payloadPath)
+        {
+            if (!Directory.Exists(payloadPath))
+            {
+                throw new DirectoryNotFoundException(
+                    $"Payloadフォルダが見つかりません: {payloadPath}");
+            }
+
+            return Directory
+                .EnumerateFiles(
+                    payloadPath,
+                    "*",
+                    SearchOption.AllDirectories)
+                .Sum(file => new FileInfo(file).Length);
+        }
+
+        public string FormatFileSize(long bytes)
+        {
+            string[] units = { "B", "KB", "MB", "GB", "TB" };
+
+            double size = bytes;
+            int unitIndex = 0;
+
+            while (size >= 1024 && unitIndex < units.Length - 1)
+            {
+                size /= 1024;
+                unitIndex++;
+            }
+
+            return $"{size:N2} {units[unitIndex]}";
         }
     }
 }

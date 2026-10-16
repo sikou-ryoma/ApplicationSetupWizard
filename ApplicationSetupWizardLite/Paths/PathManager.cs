@@ -9,6 +9,7 @@ namespace ApplicationSetupWizardLite.Paths
         // public string excelBookDirPath { get; }
         // public string logDirPath { get; }
         public string defaultInstallPath { get; }
+        public string payloadPath { get; }
 
         public PathManager(string baseDir)
         {
@@ -18,6 +19,7 @@ namespace ApplicationSetupWizardLite.Paths
             // logDirPath = Path.Combine(baseDir, "log");
             defaultInstallPath = 
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            payloadPath = Path.Combine(baseDir, "Payload");
         }
     }
 }
