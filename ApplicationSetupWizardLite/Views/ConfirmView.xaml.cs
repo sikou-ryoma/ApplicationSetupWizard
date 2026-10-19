@@ -18,6 +18,7 @@ namespace ApplicationSetupWizardLite.Views
             _appConfig = appConfig;
             _setupCtx = setupCtx;
             ApplicationNameText.Text = _appConfig.targetAppName;
+            RequiredSpaceText.Text = _setupCtx.PayloadSizeText;
             UpdateConfirmView();
         }
         public void UpdateConfirmView()
@@ -28,6 +29,7 @@ namespace ApplicationSetupWizardLite.Views
                     _appConfig.targetAppName,
                     _appConfig.targetAppVersion
             );
+
             ShortcutText.Text = _setupCtx.CreateShortcut ? "ショートカットを作成する" : "作成しない";
         }
     }

@@ -27,6 +27,7 @@ namespace ApplicationSetupWizardLite.Views
             _viewModel.InstallPath = _setupCtx.InstallPath;
             _viewModel.CreateShortcut = _setupCtx.CreateShortcut;
             _viewModel.FullInstallPath = _setupCtx.GetFullInstallPath(_viewModel.InstallPath);
+            _viewModel.PayloadSizeText = _setupCtx.PayloadSizeText;
         }
 
         public void BrowseButton_Click(object sender, RoutedEventArgs e)

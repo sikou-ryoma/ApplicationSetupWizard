@@ -160,7 +160,7 @@
                     <Button x:Name="NextButton"
                             Content="次へ ＞"
                             Style="{StaticResource WizardButtonStyle}"
-                            Click="NextButton_Click"/>
+                            Command="{Binding NextCommand}"/>
 
                     <Button x:Name="CancelButton"
                             Content="キャンセル"

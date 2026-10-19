@@ -112,11 +112,10 @@
                     FontSize="12"
                     Foreground="#555555"/>
 
-            <TextBlock x:Name="DiskSpaceText"
-                    Text="約 0 MB"
-                    FontSize="13"
-                    Foreground="#333333"
-                    Margin="10,5,0,0"/>
+            <TextBlock Text="{Binding PayloadSizeText}"
+                       FontSize="13"
+                       Foreground="#333333"
+                       Margin="10,5,0,0"/>
 
             <CheckBox x:Name="ShortcutsCheckBox"
                       Content="デスクトップへショートカットを作成する"

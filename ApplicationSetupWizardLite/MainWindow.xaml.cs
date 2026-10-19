@@ -5,6 +5,8 @@ using ApplicationSetupWizardLite.Paths;
 using ApplicationSetupWizardLite.Services;
 using ApplicationSetupWizardLite.Views;
 using ApplicationSetupWizardLite.ViewModels;
+using ApplicationSetupWizardLite.Commands;
+using System.Threading.Tasks;
 using System.IO;
 using System.Windows;
 
@@ -25,6 +27,7 @@ namespace ApplicationSetupWizardLite
         // context
         private ProcessContext procCtx = new ProcessContext();
         private StepViewState stepViewState = new StepViewState();
+        private StepViewState? currentStepState;
         private SetupContext setupCtx;
         private SetupResult setupResult = new SetupResult();
 
@@ -37,7 +40,11 @@ namespace ApplicationSetupWizardLite
         private ShortcutService shortcutService = new ShortcutService();
         private ApplicationLaunchService launchService = new ApplicationLaunchService();
 
+        // commands
+        public AsyncRelayCommand NextCommand { get; }
+
         // strings
+        private string exePath = string.Empty;
         private readonly string[] stepTexts =
         {
             "ようこそ",
@@ -47,24 +54,34 @@ namespace ApplicationSetupWizardLite
             "完了"
         };
 
-        private string exePath = string.Empty;
 
         public MainWindow()
         {
             InitializeComponent();
 
+            // データバインド
+            DataContext = this;
+            NextCommand = new AsyncRelayCommand(
+                () => ExecuteNextAsync(),
+                HandleCommandError,
+                () => currentStepState?.CanGoNext ?? false);
+
+            // 設定とコンテクスト
             xml = new XmlHelper(paths.xmlFilePath);
             appConf = new AppConfig(xml);
             setupCtx = new SetupContext(appConf);
             procService = new ProcessService(xml, procCtx, setupCtx);
-
+            setupCtx.PayloadSizeText = 
+                procService.FormatFileSize(procService.GetPayloadSize(paths.payloadPath));
+            
+            // 初期画面の表示
             GetStepMessages();
             ChangeContent(procCtx.currentStep);
-
             AppNameLbl1.Text = appConf.targetAppName + " v" + appConf.targetAppVersion;
             VersionLbl.Text = "Installer Version " + appConf.appVersion;
             setupCtx.InstallPath = paths.defaultInstallPath;
 
+            // ViewModelの読み込み
             installLocationViewModel = new InstallLocationViewModel(setupCtx);
             installingViewModel = new InstallingViewModel(procService);
 
@@ -172,17 +189,20 @@ namespace ApplicationSetupWizardLite
                 installLocationViewModel.UpdateContext();
             }
 
-            var state = GetStepState(step);
+            currentStepState = GetStepState(step);
+            var state = currentStepState;
 
             ContentArea.Content = state.View;
             NextButton.Content = state.NextButtonText;
             BackButton.IsEnabled = state.CanGoBack;
-            NextButton.IsEnabled = state.CanGoNext;
+            // NextButton.IsEnabled = state.CanGoNext;
 
             CancelButton.Visibility =
                 state.ShowCancel ? Visibility.Visible : Visibility.Collapsed;
             BackButton.Visibility =
                 state.ShowBack ? Visibility.Visible : Visibility.Collapsed;
+
+            NextCommand.RaiseCanExecuteChanged();
         }
 
 
@@ -242,12 +262,10 @@ namespace ApplicationSetupWizardLite
         }
 
         // 次へボタンの処理
-
+        
         // 押下時の挙動
         // ===============================
-        private async void NextButton_Click(
-            object sender,
-            RoutedEventArgs e)
+        private async Task ExecuteNextAsync()
         {
             if (procCtx.IsCompleted)
             {
@@ -259,10 +277,18 @@ namespace ApplicationSetupWizardLite
             if (procCtx.currentStep == 2)
             {
                 await ExecuteInstallationAsync();
-                // return;
             }
-
+            
             MoveToNextStep();
+        }
+
+        private void HandleCommandError(Exception ex)
+        {
+            System.Windows.MessageBox.Show(
+                $"処理中にエラーが発生しました。\n\n{ex.Message}",
+                "エラー",
+                MessageBoxButton.OK,
+                MessageBoxImage.Error);
         }
 
         // 基本処理
@@ -322,8 +348,19 @@ namespace ApplicationSetupWizardLite
             {
                 if (completeView.viewModel.LaunchApplication)
                 {
-                    launchService.LaunchTest(exePath);
-                    // launchService.Launch(exePath);
+                    try
+                    {
+                        launchService.LaunchTest(exePath);
+                        // launchService.Launch(exePath);
+                    }
+                    catch(FileNotFoundException ex)
+                    {
+                        System.Windows.MessageBox.Show(
+                            ex.Message,
+                            "起動時エラー",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                    }
                 }
             }
         }

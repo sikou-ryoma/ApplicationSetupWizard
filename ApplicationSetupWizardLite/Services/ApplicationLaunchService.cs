@@ -31,7 +31,7 @@ namespace ApplicationSetupWizardLite.Services
             if (!File.Exists(exePath))
             {
                 throw new FileNotFoundException(
-                    "起動するアプリが見つかりません。",
+                    "起動するアプリケーションが見つかりません。",
                     exePath);
             }
 

@@ -209,7 +209,8 @@ namespace ApplicationSetupWizardLite.Services
                 unitIndex++;
             }
 
-            return $"{size:N2} {units[unitIndex]}";
+            // return $"{size:N2} {units[unitIndex]}";
+            return $"約 {size:N0} {units[unitIndex]}";
         }
     }
 }

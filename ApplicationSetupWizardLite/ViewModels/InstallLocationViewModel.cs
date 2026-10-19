@@ -7,15 +7,16 @@ namespace ApplicationSetupWizardLite.ViewModels
         private readonly SetupContext _setupContext;
         public string InstallPath { get; set; } = "";
         public string FullInstallPath { get; set; } = "";
-        public string PLText { get; set; } = "";
+        public string PayloadSizeText { get; set; } = "";
         public bool CreateShortcut { get; set; } = true;
         public string StatusText { get; set; } = "";
-
+        
         public InstallLocationViewModel(SetupContext setupContext)
         {
             _setupContext = setupContext;
             InstallPath = _setupContext.InstallPath;
             CreateShortcut = _setupContext.CreateShortcut;
+            PayloadSizeText = _setupContext.PayloadSizeText;
         }
         public void UpdateContext()
         {
