@@ -18,8 +18,8 @@ namespace ApplicationSetupWizardLite.Paths
             // excelBookDirPath = Path.Combine(baseDir, "workbook");
             // logDirPath = Path.Combine(baseDir, "log");
             defaultInstallPath = 
-                // Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                // Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
             payloadPath = Path.Combine(baseDir, "Payload");
         }
     }

@@ -85,14 +85,11 @@ namespace ApplicationSetupWizardLite.Services
         }
         
         public async Task InstallAsync(
+            string payloadPath,
             string installPath,
             IProgress<InstallProgress> progress,
             CancellationToken cancellationToken)
         {
-            string payloadPath = Path.Combine(
-                AppContext.BaseDirectory,
-                "Payload");
-
             string? parentPath = Path.GetDirectoryName(
                 Path.TrimEndingDirectorySeparator(installPath));
 

@@ -61,7 +61,9 @@ namespace ApplicationSetupWizardLite.ViewModels
 
 
         // インストール処理の開始
-        public async Task<SetupResult> StartInstallAsync(string installPath)
+        public async Task<SetupResult> StartInstallAsync(
+            string payloadPath,
+            string installPath)
         {
             IsInstalling = true;
 
@@ -81,6 +83,7 @@ namespace ApplicationSetupWizardLite.ViewModels
                 });
 
                 await _installService.InstallAsync(
+                    payloadPath,
                     installPath,
                     progress,
                     _installCts.Token);

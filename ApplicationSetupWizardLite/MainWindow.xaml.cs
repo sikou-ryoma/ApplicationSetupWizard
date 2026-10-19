@@ -39,11 +39,13 @@ namespace ApplicationSetupWizardLite
         private ProcessService procService;
         private ShortcutService shortcutService = new ShortcutService();
         private ApplicationLaunchService launchService = new ApplicationLaunchService();
+        private PayloadService payloadService = new PayloadService();
 
         // commands
         public AsyncRelayCommand NextCommand { get; }
 
         // strings
+        private string? extractedPayloadPath;
         private string exePath = string.Empty;
         private readonly string[] stepTexts =
         {
@@ -71,9 +73,15 @@ namespace ApplicationSetupWizardLite
             appConf = new AppConfig(xml);
             setupCtx = new SetupContext(appConf);
             procService = new ProcessService(xml, procCtx, setupCtx);
-            setupCtx.PayloadSizeText = 
-                procService.FormatFileSize(procService.GetPayloadSize(paths.payloadPath));
-            
+
+            // 埋め込みPayloadを一時フォルダへ展開
+            extractedPayloadPath = payloadService.ExtractPayload();
+
+            // 展開したPayloadの容量を取得
+            setupCtx.PayloadSizeText =
+                procService.FormatFileSize(
+                    procService.GetPayloadSize(extractedPayloadPath));
+
             // 初期画面の表示
             GetStepMessages();
             ChangeContent(procCtx.currentStep);
@@ -315,6 +323,7 @@ namespace ApplicationSetupWizardLite
             // インストールを実行
             setupResult =
                 await installingViewModel.StartInstallAsync(
+                    extractedPayloadPath,
                     installPath);
 
             // 失敗時はショートカット作成へ進まない
@@ -329,8 +338,8 @@ namespace ApplicationSetupWizardLite
             {
                 exePath = Path.Combine(
                     setupCtx.GetFullInstallPath(setupCtx.InstallPath),
-                    // appConf.executableName);
-                    "test.txt");
+                    appConf.executableName);
+                    // "test.txt");
 
                 shortcutService.CreateDesktopShortcut(
                     appConf.targetAppName + "_v" + appConf.targetAppVersion,
@@ -344,23 +353,21 @@ namespace ApplicationSetupWizardLite
         // ===============================
         private void LaunchApplicationIfNeeded()
         {
-            if (ContentArea.Content is CompleteView completeView)
+            if (ContentArea.Content is CompleteView completeView &&
+                completeView.viewModel.LaunchApplication)
             {
-                if (completeView.viewModel.LaunchApplication)
+                try
                 {
-                    try
-                    {
-                        launchService.LaunchTest(exePath);
-                        // launchService.Launch(exePath);
-                    }
-                    catch(FileNotFoundException ex)
-                    {
-                        System.Windows.MessageBox.Show(
-                            ex.Message,
-                            "起動時エラー",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Warning);
-                    }
+                    // launchService.LaunchTest(exePath);
+                    launchService.Launch(exePath);
+                }
+                catch(FileNotFoundException ex)
+                {
+                    System.Windows.MessageBox.Show(
+                        ex.Message,
+                        "起動時エラー",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
                 }
             }
         }
