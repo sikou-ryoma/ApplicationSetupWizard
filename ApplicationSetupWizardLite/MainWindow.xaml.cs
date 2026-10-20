@@ -103,20 +103,35 @@ namespace ApplicationSetupWizardLite
         // ===============================
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            await LoadPayloadSizeAsync();
+            try
+            {
+                await LoadPayloadSizeAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Payloadの読み込みに失敗しました。\n\n{ex.Message}",
+                    "初期化エラー",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
+                Close();
+            }
         }
 
         private async Task LoadPayloadSizeAsync()
         {
-            // 埋め込みPayloadを一時フォルダへ展開
-            extractedPayloadPath = _payloadService.ExtractPayload();
+            var result = await Task.Run(() =>
+            {
+                var payloadPath = _payloadService.ExtractPayload();
+                var size = _processService.GetPayloadSize(payloadPath);
+                return (payloadPath, size);
+            });
 
-            // 展開したPayloadの容量を取得
+            extractedPayloadPath = result.payloadPath;
             _setupContext.PayloadSizeText =
-                _processService.FormatFileSize(
-                    _processService.GetPayloadSize(extractedPayloadPath));
+                _processService.FormatFileSize(result.size);
         }
-
 
         // 基本的な画面表示
 
