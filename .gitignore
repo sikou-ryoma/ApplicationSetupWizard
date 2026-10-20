@@ -363,4 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /ApplicationSetupWizardLite/Payload/Config
 /ApplicationSetupWizardLite/Conf/Config.xml
-/ApplicationSetupWizardLite/Resources
+/ApplicationSetupWizardLite/Resources/Payload.zip
