@@ -6,13 +6,9 @@ namespace ApplicationSetupWizardLite.Context
     public class SetupContext
     {
         private readonly AppConfig _appConfig;
-
         public string InstallPath { get; set; }
-
         public string PayloadSizeText { get; set; }
-
         public bool CreateShortcut { get; set; }
-
 
         public SetupContext(AppConfig appConfig)
         {
@@ -21,7 +17,7 @@ namespace ApplicationSetupWizardLite.Context
             PayloadSizeText = "";
             CreateShortcut = true;
         }
-
+        
         public string GetFullInstallPath(string baseInstallPath = "")
         {
             if (string.IsNullOrEmpty(baseInstallPath))
@@ -31,9 +27,9 @@ namespace ApplicationSetupWizardLite.Context
 
             return System.IO.Path.Combine(
                 baseInstallPath,
-                _appConfig.targetCompanyName,
-                _appConfig.targetAppName,
-                _appConfig.targetAppVersion
+                _appConfig.TargetCompanyName,
+                _appConfig.TargetAppName,
+                _appConfig.TargetAppVersion
             );
         }
     }

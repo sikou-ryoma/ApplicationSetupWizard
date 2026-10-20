@@ -19,15 +19,15 @@ namespace ApplicationSetupWizardLite.Views
     /// </summary>
     public partial class WelcomeView : System.Windows.Controls.UserControl
     {
-       private readonly AppConfig _appConf;
+       private readonly AppConfig _appConfig;
 
         public WelcomeView(AppConfig appConf)
         {
             InitializeComponent();
-            _appConf = appConf;
+            _appConfig = appConf;
 
-            TitleTextBlock.Text = $"{_appConf.targetAppName} v{ _appConf.targetAppVersion} セットアップ";
-            ContentTextBlock.Text = $"{_appConf.targetAppName} をコンピューターにインストールします。";
+            TitleTextBlock.Text = $"{_appConfig.TargetAppName} v{ _appConfig.TargetAppVersion} セットアップ";
+            ContentTextBlock.Text = $"{_appConfig.TargetAppName} をコンピューターにインストールします。";
         }
     }
 }

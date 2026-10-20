@@ -12,7 +12,7 @@ namespace ApplicationSetupWizardLite.Views
     /// </summary>
     public partial class InstallLocationView : UserControl
     {
-        private SetupContext _setupCtx;
+        private SetupContext _setupContext;
         private InstallLocationViewModel _viewModel;
 
         public InstallLocationView(
@@ -20,14 +20,14 @@ namespace ApplicationSetupWizardLite.Views
             InstallLocationViewModel viewModel)
         {
             InitializeComponent();
-            _setupCtx = setupCtx;
+            _setupContext = setupCtx;
             _viewModel = viewModel;
             DataContext = _viewModel;
 
-            _viewModel.InstallPath = _setupCtx.InstallPath;
-            _viewModel.CreateShortcut = _setupCtx.CreateShortcut;
-            _viewModel.FullInstallPath = _setupCtx.GetFullInstallPath(_viewModel.InstallPath);
-            _viewModel.PayloadSizeText = _setupCtx.PayloadSizeText;
+            _viewModel.InstallPath = _setupContext.InstallPath;
+            _viewModel.CreateShortcut = _setupContext.CreateShortcut;
+            _viewModel.FullInstallPath = _setupContext.GetFullInstallPath(_viewModel.InstallPath);
+            _viewModel.PayloadSizeText = _setupContext.PayloadSizeText;
         }
 
         public void BrowseButton_Click(object sender, RoutedEventArgs e)
@@ -40,7 +40,7 @@ namespace ApplicationSetupWizardLite.Views
                 _viewModel.InstallPath = dialog.SelectedPath;
                 InstallPathTextBox.Text = _viewModel.InstallPath;
 
-                _viewModel.FullInstallPath = _setupCtx.GetFullInstallPath(_viewModel.InstallPath);
+                _viewModel.FullInstallPath = _setupContext.GetFullInstallPath(_viewModel.InstallPath);
                 FolderStructureText.Text = _viewModel.FullInstallPath;
             }
         }

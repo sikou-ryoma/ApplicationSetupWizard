@@ -20,27 +20,26 @@ namespace ApplicationSetupWizardLite
     public partial class MainWindow : Window
     {
         // configuration
-        private AppConfig appConf;
-        private XmlHelper xml;
-        private PathManager paths =     
+        private AppConfig _appConfig;
+        private XmlHelper _xml;
+        private PathManager _paths =     
             new PathManager(Path.GetFullPath(AppContext.BaseDirectory));
 
         // context
-        private ProcessContext procCtx = new ProcessContext();
-        // private StepViewState stepViewState = new StepViewState();
-        private StepViewState? currentStepState;
-        private SetupContext setupCtx;
-        private SetupResult setupResult = new SetupResult();
+        private ProcessContext _processContext = new ProcessContext();
+        private StepViewState? _currentStepState;
+        private SetupContext _setupContext;
+        private SetupResult _setupResult = new SetupResult();
 
         // view models
-        private InstallLocationViewModel installLocationViewModel;
-        private InstallingViewModel installingViewModel;
+        private InstallLocationViewModel _installLocationViewModel;
+        private InstallingViewModel _installingViewModel;
 
         // services
-        private ProcessService procService;
-        private ShortcutService shortcutService = new ShortcutService();
-        private ApplicationLaunchService launchService = new ApplicationLaunchService();
-        private PayloadService payloadService = new PayloadService();
+        private ProcessService _processService;
+        private ShortcutService _shortcutService = new ShortcutService();
+        private ApplicationLaunchService _launchService = new ApplicationLaunchService();
+        private PayloadService _payloadService = new PayloadService();
 
         // commands
         public AsyncRelayCommand NextCommand { get; }
@@ -67,7 +66,7 @@ namespace ApplicationSetupWizardLite
             NextCommand = new AsyncRelayCommand(
                 () => ExecuteNextAsync(),
                 HandleCommandError,
-                () => currentStepState?.CanGoNext ?? false);
+                () => _currentStepState?.CanGoNext ?? false);
 
             // xml読み込み
             var assembly = Assembly.GetExecutingAssembly();
@@ -81,33 +80,43 @@ namespace ApplicationSetupWizardLite
                     "埋め込みリソース config.xml が見つかりません。");
             }
 
-            xml = new XmlHelper(stream);
+            _xml = new XmlHelper(stream);
 
             // 設定とコンテクスト
-            appConf = new AppConfig(xml);
-            setupCtx = new SetupContext(appConf);
-            procService = new ProcessService(xml, procCtx, setupCtx);
-
-            // 埋め込みPayloadを一時フォルダへ展開
-            extractedPayloadPath = payloadService.ExtractPayload();
-
-            // 展開したPayloadの容量を取得
-            setupCtx.PayloadSizeText =
-                procService.FormatFileSize(
-                    procService.GetPayloadSize(extractedPayloadPath));
+            _appConfig = new AppConfig(_xml);
+            _setupContext = new SetupContext(_appConfig);
+            _processService = new ProcessService(_xml, _processContext, _setupContext);
 
             // 初期画面の表示
             GetStepMessages();
-            ChangeContent(procCtx.currentStep);
-            AppNameLbl1.Text = appConf.targetAppName + " v" + appConf.targetAppVersion;
-            VersionLbl.Text = "Installer Version " + appConf.appVersion;
-            setupCtx.InstallPath = paths.defaultInstallPath;
+            ChangeContent(_processContext.CurrentStep);
+            AppNameLbl1.Text = _appConfig.TargetAppName + " v" + _appConfig.TargetAppVersion;
+            VersionLbl.Text = "Installer Version " + _appConfig.AppVersion;
+            _setupContext.InstallPath = _paths.DefaultInstallPath;
 
             // ViewModelの読み込み
-            installLocationViewModel = new InstallLocationViewModel(setupCtx);
-            installingViewModel = new InstallingViewModel(procService);
-
+            _installLocationViewModel = new InstallLocationViewModel(_setupContext);
+            _installingViewModel = new InstallingViewModel(_processService);
         }
+
+        // Payload全体の容量数をロード時に取得
+        // ===============================
+        private async void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            await LoadPayloadSizeAsync();
+        }
+
+        private async Task LoadPayloadSizeAsync()
+        {
+            // 埋め込みPayloadを一時フォルダへ展開
+            extractedPayloadPath = _payloadService.ExtractPayload();
+
+            // 展開したPayloadの容量を取得
+            _setupContext.PayloadSizeText =
+                _processService.FormatFileSize(
+                    _processService.GetPayloadSize(extractedPayloadPath));
+        }
+
 
         // 基本的な画面表示
 
@@ -116,9 +125,9 @@ namespace ApplicationSetupWizardLite
 
         private string GetStepStatus(int step)
         {
-            if (step == procCtx.currentStep)
+            if (step == _processContext.CurrentStep)
                 return "▶  " + stepTexts[step];
-            if (step < procCtx.currentStep)
+            if (step < _processContext.CurrentStep)
                 return "✓  " + stepTexts[step];
             return "〇  " + stepTexts[step];
         }
@@ -142,7 +151,7 @@ namespace ApplicationSetupWizardLite
                 case 0:
                     return new StepViewState
                     {
-                        View = new WelcomeView(appConf),
+                        View = new WelcomeView(_appConfig),
                         NextButtonText = "次へ ＞",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = false,
@@ -154,7 +163,7 @@ namespace ApplicationSetupWizardLite
                 case 1:
                     return new StepViewState
                     {
-                        View = new InstallLocationView(setupCtx, installLocationViewModel),
+                        View = new InstallLocationView(_setupContext, _installLocationViewModel),
                         NextButtonText = "次へ ＞",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = true,
@@ -166,7 +175,7 @@ namespace ApplicationSetupWizardLite
                 case 2:
                     return new StepViewState
                     {
-                        View = new ConfirmView(appConf, setupCtx),
+                        View = new ConfirmView(_appConfig, _setupContext),
                         NextButtonText = "インストール",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = true,
@@ -178,7 +187,7 @@ namespace ApplicationSetupWizardLite
                 case 3:
                     return new StepViewState
                     {
-                        View = new InstallingView(installingViewModel),
+                        View = new InstallingView(_installingViewModel),
                         NextButtonText = "インストール中",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = false,
@@ -190,7 +199,7 @@ namespace ApplicationSetupWizardLite
                 case 4:
                     return new StepViewState
                     {
-                        View = new CompleteView(setupResult),
+                        View = new CompleteView(_setupResult),
                         NextButtonText = "完了",
                         CanGoBack = false,
                         CanGoNext = true,
@@ -208,16 +217,15 @@ namespace ApplicationSetupWizardLite
         {
             if (step == 1 || step == 2)
             {
-                installLocationViewModel.UpdateContext();
+                _installLocationViewModel.UpdateContext();
             }
 
-            currentStepState = GetStepState(step);
-            var state = currentStepState;
+            _currentStepState = GetStepState(step);
+            var state = _currentStepState;
 
             ContentArea.Content = state.View;
             NextButton.Content = state.NextButtonText;
             BackButton.IsEnabled = state.CanGoBack;
-            // NextButton.IsEnabled = state.CanGoNext;
 
             CancelButton.Visibility =
                 state.ShowCancel ? Visibility.Visible : Visibility.Collapsed;
@@ -233,14 +241,13 @@ namespace ApplicationSetupWizardLite
 
         // キャンセル、閉じるボタンの処理
         // ===============================
-        private bool _cancelRequested;
 
         private void Window_Closing(
             object sender,
             System.ComponentModel.CancelEventArgs e)
         {
             // インストール中の場合
-            if (installingViewModel?.IsInstalling == true)
+            if (_installingViewModel?.IsInstalling == true)
             {
                 var result = System.Windows.MessageBox.Show(
                     "インストール中です。中止しますか？",
@@ -255,15 +262,14 @@ namespace ApplicationSetupWizardLite
                 }
 
                 // ウィンドウはまだ閉じず、キャンセルを要求する
-                _cancelRequested = true;
                 e.Cancel = true;
 
-                installingViewModel.CancelInstall();
+                _installingViewModel.CancelInstall();
                 return;
             }
 
             // セットアップが完了していない場合
-            if (!procCtx.IsCompleted)
+            if (!_processContext.IsCompleted)
             {
                 var result = System.Windows.MessageBox.Show(
                     "セットアップを中止しますか？",
@@ -276,6 +282,7 @@ namespace ApplicationSetupWizardLite
                     e.Cancel = true;
                     return;
                 }
+                
                 CleanupTempFiles();
             }
         }
@@ -291,18 +298,19 @@ namespace ApplicationSetupWizardLite
         // ===============================
         private async Task ExecuteNextAsync()
         {
-            if (procCtx.IsCompleted)
+            if (_processContext.IsCompleted)
             {
                 LaunchApplicationIfNeeded();
                 Close();
                 return;
             }
 
-            if (procCtx.currentStep == 2)
+            if (_processContext.CurrentStep == 2)
             {
                 await ExecuteInstallationAsync();
             }
-            
+
+            // 基本的にキャンセル・失敗時でも完了画面に遷移する
             MoveToNextStep();
         }
 
@@ -319,10 +327,10 @@ namespace ApplicationSetupWizardLite
         // ===============================
         private void MoveToNextStep()
         {
-            procService.NextProcess();
+            _processService.NextProcess();
 
             GetStepMessages();
-            ChangeContent(procCtx.currentStep);
+            ChangeContent(_processContext.CurrentStep);
         }
 
         // インストール処理の実行
@@ -333,8 +341,8 @@ namespace ApplicationSetupWizardLite
             MoveToNextStep();
 
             string installPath =
-                setupCtx.GetFullInstallPath(
-                    setupCtx.InstallPath);
+                _setupContext.GetFullInstallPath(
+                    _setupContext.InstallPath);
 
             try
             {
@@ -346,33 +354,31 @@ namespace ApplicationSetupWizardLite
                 }
 
                 // インストールを実行
-                setupResult = await installingViewModel.StartInstallAsync(
+                _setupResult = await _installingViewModel.StartInstallAsync(
                     extractedPayloadPath,
                     installPath);
 
                 // 失敗・キャンセル時はショートカット作成へ進まない
-                if (setupResult.Status != SetupStatus.Success)
+                if (_setupResult.Status != SetupStatus.Success)
                 {
                     return;
                 }
 
                 // ショートカットを作成する
-                if (installLocationViewModel.CreateShortcut)
+                if (_installLocationViewModel.CreateShortcut)
                 {
                     exePath = Path.Combine(
                         installPath,
-                        appConf.executableName);
+                        _appConfig.ExecutableName);
 
-                    shortcutService.CreateDesktopShortcut(
-                        appConf.targetAppName + "_v" + appConf.targetAppVersion,
+                    _shortcutService.CreateDesktopShortcut(
+                        _appConfig.TargetAppName + "_v" + _appConfig.TargetAppVersion,
                         exePath);
                 }
             }
             finally
             {
                 CleanupTempFiles();
-                // 完了画面へ移動
-                ChangeContent(procCtx.currentStep);
             }
         }
 
@@ -381,7 +387,7 @@ namespace ApplicationSetupWizardLite
         {
             try
             {
-                payloadService.CleanupPayload(extractedPayloadPath);
+                _payloadService.CleanupPayload(extractedPayloadPath);
                 extractedPayloadPath = null;
             }
             catch (Exception ex)
@@ -398,12 +404,12 @@ namespace ApplicationSetupWizardLite
         private void LaunchApplicationIfNeeded()
         {
             if (ContentArea.Content is CompleteView completeView &&
-                completeView.viewModel.LaunchApplication)
+                completeView.ViewModel.LaunchApplication)
             {
                 try
                 {
                     // launchService.LaunchTest(exePath);
-                    launchService.Launch(exePath);
+                    _launchService.Launch(exePath);
                 }
                 catch(FileNotFoundException ex)
                 {
@@ -420,9 +426,9 @@ namespace ApplicationSetupWizardLite
         // ===============================
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
-            procService.PreviousProcess();
+            _processService.PreviousProcess();
             GetStepMessages();
-            ChangeContent(procCtx.currentStep);
+            ChangeContent(_processContext.CurrentStep);
         }
     }
 }

@@ -11,26 +11,26 @@ namespace ApplicationSetupWizardLite.Views
     public partial class ConfirmView : System.Windows.Controls.UserControl
     {
         private readonly AppConfig _appConfig;
-        private SetupContext _setupCtx;
+        private SetupContext _setupContext;
         public ConfirmView(AppConfig appConfig, SetupContext setupCtx)
         {
             InitializeComponent();
             _appConfig = appConfig;
-            _setupCtx = setupCtx;
-            ApplicationNameText.Text = _appConfig.targetAppName;
-            RequiredSpaceText.Text = _setupCtx.PayloadSizeText;
+            _setupContext = setupCtx;
+            ApplicationNameText.Text = _appConfig.TargetAppName;
+            RequiredSpaceText.Text = _setupContext.PayloadSizeText;
             UpdateConfirmView();
         }
         public void UpdateConfirmView()
         {
             InstallPathText.Text = Path.Combine(
-                    _setupCtx.InstallPath,
-                    _appConfig.targetCompanyName,
-                    _appConfig.targetAppName,
-                    _appConfig.targetAppVersion
+                    _setupContext.InstallPath,
+                    _appConfig.TargetCompanyName,
+                    _appConfig.TargetAppName,
+                    _appConfig.TargetAppVersion
             );
 
-            ShortcutText.Text = _setupCtx.CreateShortcut ? "ショートカットを作成する" : "作成しない";
+            ShortcutText.Text = _setupContext.CreateShortcut ? "ショートカットを作成する" : "作成しない";
         }
     }
 }

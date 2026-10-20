@@ -9,14 +9,14 @@ namespace ApplicationSetupWizardLite.Views
     /// </summary>
     public partial class CompleteView : System.Windows.Controls.UserControl
     {
-        public CompleteViewModel viewModel { get; }
+        public CompleteViewModel ViewModel { get; }
 
         public CompleteView(SetupResult result)
         {
             InitializeComponent();
 
-            viewModel = new CompleteViewModel(result);
-            DataContext = viewModel;
+            ViewModel = new CompleteViewModel(result);
+            DataContext = ViewModel;
         }
     }
 }

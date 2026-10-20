@@ -7,8 +7,8 @@ namespace ApplicationSetupWizardLite.Services
     public class ProcessService
     {
         private readonly XmlHelper _xmlHelper;
-        private readonly ProcessContext _procCtx;
-        private readonly SetupContext _setupCtx;
+        private readonly ProcessContext _processContext;
+        private readonly SetupContext _setupContext;
 
 
         public ProcessService(
@@ -17,8 +17,8 @@ namespace ApplicationSetupWizardLite.Services
             SetupContext setupContext)
         {
             _xmlHelper = xmlHelper;
-            _procCtx = processContext;
-            _setupCtx = setupContext;
+            _processContext = processContext;
+            _setupContext = setupContext;
         }
 
         /// <summary>
@@ -27,24 +27,24 @@ namespace ApplicationSetupWizardLite.Services
         /// <exception cref="InvalidOperationException"></exception>
         public void NextProcess()
         {
-            switch(_procCtx.currentStep)
+            switch(_processContext.CurrentStep)
             {
                 case 0:
                     // Step 0: Welcome
-                    _procCtx.NextStep();
+                    _processContext.NextStep();
                     break;
                 case 1:
                     // Step 1: Installation Path
-                    _procCtx.NextStep();
+                    _processContext.NextStep();
                     break;
                 case 2:
                     // Step 2: Confirmation
-                    _procCtx.NextStep();
+                    _processContext.NextStep();
                     break;
                 case 3:
                     
                     // Step 3: Installation
-                    _procCtx.NextStep();
+                    _processContext.NextStep();
                     break;
                 case 4:
                     // Step 4: Completion
@@ -57,7 +57,7 @@ namespace ApplicationSetupWizardLite.Services
 
         public void PreviousProcess()
         {
-            switch(_procCtx.currentStep)
+            switch(_processContext.CurrentStep)
             {
                 case 0:
                     // Step 0: Welcome
@@ -65,19 +65,19 @@ namespace ApplicationSetupWizardLite.Services
                     break;
                 case 1:
                     // Step 1: Installation Path
-                    _procCtx.PreviousStep();
+                    _processContext.PreviousStep();
                     break;
                 case 2:
                     // Step 2: Confirmation
-                    _procCtx.PreviousStep();
+                    _processContext.PreviousStep();
                     break;
                 case 3:
                     // Step 3: Installation
-                    _procCtx.PreviousStep();
+                    _processContext.PreviousStep();
                     break;
                 case 4:
                     // Step 4: Completion
-                    _procCtx.PreviousStep();
+                    _processContext.PreviousStep();
                     break;
                 default:
                     throw new InvalidOperationException("Invalid step index.");

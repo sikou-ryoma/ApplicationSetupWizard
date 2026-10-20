@@ -2,21 +2,27 @@
 {
     public class ProcessContext
     {
-        public int currentStep { get; private set; }
-        public bool IsCompleted => currentStep >= 4;
+        public int CurrentStep { get; private set; }
+        public bool IsCompleted => CurrentStep >= 4;
         
         public ProcessContext()
         {
-            currentStep = 0;
+            CurrentStep = 0;
         }
         public void NextStep()
         {
-            currentStep++;
+            if (CurrentStep < 4)
+            {
+                CurrentStep++;
+            }
         }
 
         public void PreviousStep()
         {
-            currentStep--;
+            if (CurrentStep > 0)
+            {
+                CurrentStep--;
+            }
         }
     }
 }
