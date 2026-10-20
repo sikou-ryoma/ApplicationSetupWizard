@@ -7,6 +7,8 @@ namespace ApplicationSetupWizardLite.Services
 {
     public class PayloadService
     {
+
+        // 実行ファイルに埋め込んだPayload.zipを展開
         public string ExtractPayload()
         {
             string tempPath = Path.Combine(
@@ -56,5 +58,30 @@ namespace ApplicationSetupWizardLite.Services
                 throw;
             }
         }
+
+        // 展開時に作成したtempを削除
+        public void CleanupPayload(string? extractedPayloadPath)
+        {
+            if (string.IsNullOrWhiteSpace(extractedPayloadPath))
+            {
+                return;
+            }
+
+            // 展開先の親フォルダを取得する
+            string? tempPath = Path.GetDirectoryName(
+                Path.TrimEndingDirectorySeparator(extractedPayloadPath));
+
+            if (string.IsNullOrWhiteSpace(tempPath))
+            {
+                return;
+            }
+
+            // 展開先が存在する場合だけ削除する
+            if (Directory.Exists(tempPath))
+            {
+                Directory.Delete(tempPath, recursive: true);
+            }
+        }
+
     }
 }

@@ -9,6 +9,7 @@ using ApplicationSetupWizardLite.Commands;
 using System.Threading.Tasks;
 using System.IO;
 using System.Windows;
+using System.Reflection;
 
 
 namespace ApplicationSetupWizardLite
@@ -26,7 +27,7 @@ namespace ApplicationSetupWizardLite
 
         // context
         private ProcessContext procCtx = new ProcessContext();
-        private StepViewState stepViewState = new StepViewState();
+        // private StepViewState stepViewState = new StepViewState();
         private StepViewState? currentStepState;
         private SetupContext setupCtx;
         private SetupResult setupResult = new SetupResult();
@@ -68,8 +69,21 @@ namespace ApplicationSetupWizardLite
                 HandleCommandError,
                 () => currentStepState?.CanGoNext ?? false);
 
+            // xml読み込み
+            var assembly = Assembly.GetExecutingAssembly();
+
+            using var stream = assembly.GetManifestResourceStream(
+                "ApplicationSetupWizardLite.Conf.config.xml");
+
+            if (stream == null)
+            {
+                throw new FileNotFoundException(
+                    "埋め込みリソース config.xml が見つかりません。");
+            }
+
+            xml = new XmlHelper(stream);
+
             // 設定とコンテクスト
-            xml = new XmlHelper(paths.xmlFilePath);
             appConf = new AppConfig(xml);
             setupCtx = new SetupContext(appConf);
             procService = new ProcessService(xml, procCtx, setupCtx);
@@ -165,7 +179,7 @@ namespace ApplicationSetupWizardLite
                     return new StepViewState
                     {
                         View = new InstallingView(installingViewModel),
-                        NextButtonText = "インストール",
+                        NextButtonText = "インストール中",
                         BackButtonText = "＜ 戻る",
                         CanGoBack = false,
                         CanGoNext = false,
@@ -214,7 +228,7 @@ namespace ApplicationSetupWizardLite
         }
 
 
-        // 以下コントロールのイベントハンドラと処理の呼び出し
+        // 以下コントロールのイベントとcommand処理
 
 
         // キャンセル、閉じるボタンの処理
@@ -260,7 +274,9 @@ namespace ApplicationSetupWizardLite
                 if (result == MessageBoxResult.No)
                 {
                     e.Cancel = true;
+                    return;
                 }
+                CleanupTempFiles();
             }
         }
 
@@ -271,7 +287,7 @@ namespace ApplicationSetupWizardLite
 
         // 次へボタンの処理
         
-        // 押下時の挙動
+        // 次へボタン押下時
         // ===============================
         private async Task ExecuteNextAsync()
         {
@@ -320,34 +336,62 @@ namespace ApplicationSetupWizardLite
                 setupCtx.GetFullInstallPath(
                     setupCtx.InstallPath);
 
-            // インストールを実行
-            setupResult =
-                await installingViewModel.StartInstallAsync(
+            try
+            {
+                // 展開済みPayloadのパスを確認
+                if (string.IsNullOrWhiteSpace(extractedPayloadPath))
+                {
+                    throw new InvalidOperationException(
+                        "展開済みPayloadのパスが設定されていません。");
+                }
+
+                // インストールを実行
+                setupResult = await installingViewModel.StartInstallAsync(
                     extractedPayloadPath,
                     installPath);
 
-            // 失敗時はショートカット作成へ進まない
-            if (setupResult.Status != SetupStatus.Success)
+                // 失敗・キャンセル時はショートカット作成へ進まない
+                if (setupResult.Status != SetupStatus.Success)
+                {
+                    return;
+                }
+
+                // ショートカットを作成する
+                if (installLocationViewModel.CreateShortcut)
+                {
+                    exePath = Path.Combine(
+                        installPath,
+                        appConf.executableName);
+
+                    shortcutService.CreateDesktopShortcut(
+                        appConf.targetAppName + "_v" + appConf.targetAppVersion,
+                        exePath);
+                }
+            }
+            finally
             {
+                CleanupTempFiles();
+                // 完了画面へ移動
                 ChangeContent(procCtx.currentStep);
-                return;
             }
-
-            // ショートカットを作成する
-            if (installLocationViewModel.CreateShortcut)
-            {
-                exePath = Path.Combine(
-                    setupCtx.GetFullInstallPath(setupCtx.InstallPath),
-                    appConf.executableName);
-                    // "test.txt");
-
-                shortcutService.CreateDesktopShortcut(
-                    appConf.targetAppName + "_v" + appConf.targetAppVersion,
-                    exePath);
-            }
-
-            ChangeContent(procCtx.currentStep);
         }
+
+        // 展開した一時ファイルは処理に関わらずここで削除
+        private void CleanupTempFiles()
+        {
+            try
+            {
+                payloadService.CleanupPayload(extractedPayloadPath);
+                extractedPayloadPath = null;
+            }
+            catch (Exception ex)
+            {
+                // 後片付けの失敗でインストール結果を上書きしない
+                System.Diagnostics.Debug.WriteLine(
+                    $"一時ファイルの削除に失敗しました: {ex.Message}");
+            }
+        }
+
 
         // アプリケーション起動の必要がある場合に起動する
         // ===============================
