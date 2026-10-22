@@ -20,13 +20,13 @@ namespace ApplicationSetupWizardLite
     public partial class MainWindow : Window
     {
         // configuration
-        private AppConfig _appConfig;
-        private XmlHelper _xml;
-        private PathManager _paths =     
+        private readonly AppConfig _appConfig;
+        private readonly XmlHelper _xml;
+        private readonly PathManager _paths =     
             new PathManager(Path.GetFullPath(AppContext.BaseDirectory));
 
         // context
-        private ProcessContext _processContext = new ProcessContext();
+        private readonly ProcessContext _processContext = new ProcessContext();
         private StepViewState? _currentStepState;
         private SetupContext _setupContext;
         private SetupResult _setupResult = new SetupResult();
@@ -38,8 +38,9 @@ namespace ApplicationSetupWizardLite
         // services
         private ProcessService _processService;
         private ShortcutService _shortcutService = new ShortcutService();
-        private ApplicationLaunchService _launchService = new ApplicationLaunchService();
-        private PayloadService _payloadService = new PayloadService();
+        private readonly ApplicationLaunchService _launchService =
+            new ApplicationLaunchService();
+        private readonly PayloadService _payloadService = new PayloadService();
 
         // commands
         public AsyncRelayCommand NextCommand { get; }

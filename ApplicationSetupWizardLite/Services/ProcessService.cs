@@ -137,8 +137,11 @@ namespace ApplicationSetupWizardLite.Services
                     Directory.CreateDirectory(
                         Path.GetDirectoryName(destination)!);
 
-                    File.Copy(file, destination);
-
+                    await Task.Run(() =>
+                    {
+                        File.Copy(file, destination);
+                    });
+                    
                     completed++;
 
                     int percent = total == 0

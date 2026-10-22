@@ -1,8 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Windows;
-
-namespace ApplicationSetupWizardLite
+﻿namespace ApplicationSetupWizardLite
 {
     /// <summary>
     /// Interaction logic for App.xaml

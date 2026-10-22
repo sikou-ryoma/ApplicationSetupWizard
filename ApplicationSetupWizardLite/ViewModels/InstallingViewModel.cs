@@ -39,7 +39,7 @@ namespace ApplicationSetupWizardLite.ViewModels
             set => SetProperty(ref _status, value);
         }
 
-
+        
         // 詳細情報
         private string _detail = "インストールを開始しています...";
 
