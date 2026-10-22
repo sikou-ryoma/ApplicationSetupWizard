@@ -60,23 +60,17 @@ namespace ApplicationSetupWizardLite.Services
             switch(_processContext.CurrentStep)
             {
                 case 0:
-                    // Step 0: Welcome
-                    // Do nothing or handle logic if needed
                     break;
                 case 1:
-                    // Step 1: Installation Path
                     _processContext.PreviousStep();
                     break;
                 case 2:
-                    // Step 2: Confirmation
                     _processContext.PreviousStep();
                     break;
                 case 3:
-                    // Step 3: Installation
                     _processContext.PreviousStep();
                     break;
                 case 4:
-                    // Step 4: Completion
                     _processContext.PreviousStep();
                     break;
                 default:
@@ -97,6 +91,13 @@ namespace ApplicationSetupWizardLite.Services
             {
                 throw new InvalidOperationException(
                     "インストール先の親フォルダを取得できません。");
+            }
+
+            // 正式な配置先が既に存在する場合は上書きしない
+            if (Directory.Exists(installPath) || File.Exists(installPath))
+            {
+                throw new IOException(
+                    $"インストール先が既に存在します: {installPath}");
             }
 
             string tempPath = installPath + ".installing";
@@ -160,12 +161,6 @@ namespace ApplicationSetupWizardLite.Services
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                // 正式な配置先が既に存在する場合は上書きしない
-                if (Directory.Exists(installPath) || File.Exists(installPath))
-                {
-                    throw new IOException(
-                        $"インストール先が既に存在します: {installPath}");
-                }
 
                 // 一時フォルダを正式な配置先へ切り替える
                 Directory.Move(tempPath, installPath);
@@ -175,7 +170,16 @@ namespace ApplicationSetupWizardLite.Services
             {
                 if (!copyCompleted && Directory.Exists(tempPath))
                 {
-                    Directory.Delete(tempPath, recursive: true);
+                    try
+                    {
+                        Directory.Delete(tempPath, recursive: true);
+                    }
+                    catch (Exception ex)
+                    {
+                        // 後片付けの失敗を記録する
+                        System.Diagnostics.Debug.WriteLine(
+                            $"インストール一時フォルダの削除に失敗しました: {ex}");
+                    }
                 }
             }
         }

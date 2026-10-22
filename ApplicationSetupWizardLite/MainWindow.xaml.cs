@@ -122,16 +122,41 @@ namespace ApplicationSetupWizardLite
 
         private async Task LoadPayloadSizeAsync()
         {
-            var result = await Task.Run(() =>
-            {
-                var payloadPath = _payloadService.ExtractPayload();
-                var size = _processService.GetPayloadSize(payloadPath);
-                return (payloadPath, size);
-            });
+            string? payloadPath = null;
 
-            extractedPayloadPath = result.payloadPath;
-            _setupContext.PayloadSizeText =
-                _processService.FormatFileSize(result.size);
+            try
+            {
+                var result = await Task.Run(() =>
+                {
+                    string path = _payloadService.ExtractPayload();
+
+                    try
+                    {
+                        long size = _processService.GetPayloadSize(path);
+                        return (payloadPath: path, size);
+                    }
+                    catch
+                    {
+                        // サイズ取得に失敗した場合も、
+                        // 展開したPayloadを削除する
+                        _payloadService.CleanupPayload(path);
+                        throw;
+                    }
+                });
+
+                payloadPath = result.payloadPath;
+                _setupContext.PayloadSizeText =
+                    _processService.FormatFileSize(result.size);
+
+                extractedPayloadPath = payloadPath;
+            }
+            catch
+            {
+                // UI側でサイズ表示などの処理に失敗した場合も
+                // 展開済みPayloadを削除する
+                _payloadService.CleanupPayload(payloadPath);
+                throw;
+            }
         }
 
         // 基本的な画面表示
@@ -381,15 +406,32 @@ namespace ApplicationSetupWizardLite
                 }
 
                 // ショートカットを作成する
+
                 if (_installLocationViewModel.CreateShortcut)
                 {
-                    exePath = Path.Combine(
-                        installPath,
-                        _appConfig.ExecutableName);
+                    try
+                    {
+                        exePath = Path.Combine(
+                            _setupContext.GetFullInstallPath(_setupContext.InstallPath),
+                            _appConfig.ExecutableName);
 
-                    _shortcutService.CreateDesktopShortcut(
-                        _appConfig.TargetAppName + "_v" + _appConfig.TargetAppVersion,
-                        exePath);
+                        _shortcutService.CreateDesktopShortcut(
+                            _appConfig.TargetAppName + "_v" + _appConfig.TargetAppVersion,
+                            exePath);
+
+                        _setupResult.ShortcutStatus = ShortcutStatus.Created;
+                        _setupResult.ShortcutDetailText =
+                            "ショートカットを作成しました。";
+                    }
+                    catch (Exception ex)
+                    {
+                        _setupResult.ShortcutStatus = ShortcutStatus.Failed;
+                        _setupResult.ShortcutDetailText =
+                            "ショートカットを作成できませんでした。";
+
+                        // 詳細な原因はデバッグ時に確認できるようにする
+                        System.Diagnostics.Debug.WriteLine(ex);
+                    }
                 }
             }
             finally

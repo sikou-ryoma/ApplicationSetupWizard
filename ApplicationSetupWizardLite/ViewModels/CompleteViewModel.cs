@@ -115,7 +115,18 @@ namespace ApplicationSetupWizardLite.ViewModels
             };
 
             ResultTitle = result.StatusText;
-            ResultDetail = result.DetailText;
+
+            ResultDetail = result.ShortcutStatus switch
+            {
+                ShortcutStatus.Created =>
+                    $"{result.DetailText}{Environment.NewLine}{result.ShortcutDetailText}",
+
+                ShortcutStatus.Failed =>
+                    $"{result.DetailText}{Environment.NewLine}{result.ShortcutDetailText}",
+
+                _ => result.DetailText
+            };
+
             CanLaunchApplication = result.IsSuccess;
 
             if (result.Status != SetupStatus.Success)
