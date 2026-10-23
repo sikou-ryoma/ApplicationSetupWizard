@@ -399,6 +399,10 @@ namespace ApplicationSetupWizardLite
                     extractedPayloadPath,
                     installPath);
 
+                exePath = Path.Combine(
+                    _setupContext.GetFullInstallPath(_setupContext.InstallPath),
+                    _appConfig.ExecutableName);
+
                 // 失敗・キャンセル時はショートカット作成へ進まない
                 if (_setupResult.Status != SetupStatus.Success)
                 {
@@ -411,10 +415,6 @@ namespace ApplicationSetupWizardLite
                 {
                     try
                     {
-                        exePath = Path.Combine(
-                            _setupContext.GetFullInstallPath(_setupContext.InstallPath),
-                            _appConfig.ExecutableName);
-
                         _shortcutService.CreateDesktopShortcut(
                             _appConfig.TargetAppName + "_v" + _appConfig.TargetAppVersion,
                             exePath);
