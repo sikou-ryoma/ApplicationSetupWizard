@@ -133,61 +133,62 @@ namespace ApplicationSetupWizardLite.Services
             Directory.CreateDirectory(parentPath);
             Directory.CreateDirectory(tempPath);
 
+
             bool copyCompleted = false;
 
             // 一時フォルダへPayloadデータを展開
             try
             {
-                string[] files = Directory.GetFiles(
-                    payloadPath,
-                    "*",
-                    SearchOption.AllDirectories);
-
-                int total = files.Length;
-                int completed = 0;
-
-                foreach (string file in files)
+                await Task.Run(() =>
                 {
+                    string[] files = Directory.GetFiles(
+                        payloadPath,
+                        "*",
+                        SearchOption.AllDirectories);
+
+                    int total = files.Length;
+                    int completed = 0;
+
+                    foreach (string file in files)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        string relativePath = Path.GetRelativePath(
+                            payloadPath,
+                            file);
+
+                        string destination = Path.Combine(
+                            tempPath,
+                            relativePath);
+
+                        Directory.CreateDirectory(
+                            Path.GetDirectoryName(destination)!);
+
+                        // ファイルを順番にコピー
+                        File.Copy(file, destination);
+
+                        completed++;
+
+                        int percent = total == 0
+                            ? 100
+                            : completed * 100 / total;
+
+                        progress.Report(new InstallProgress
+                        {
+                            Percent = percent,
+                            Status = "一時フォルダにファイルをコピーしています...",
+                            Detail = $"{completed} / {total} ファイル"
+                        });
+                    }
+
+                    // コピー完了後、切り替え前に再確認
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    string relativePath = Path.GetRelativePath(
-                        payloadPath,
-                        file);
-
-                    string destination = Path.Combine(
-                        tempPath,
-                        relativePath);
-
-                    Directory.CreateDirectory(
-                        Path.GetDirectoryName(destination)!);
-                    
-                    // TODO: ファイル毎にTask振ってるため見直しする
-                    await Task.Run(() =>
-                    {
-                        File.Copy(file, destination);
-                    });
-                    
-                    completed++;
-
-                    int percent = total == 0
-                        ? 100
-                        : completed * 100 / total;
-
-                    progress.Report(new InstallProgress
-                    {
-                        Percent = percent,
-                        Status = "一時フォルダにファイルをコピーしています...",
-                        Detail = $"{completed} / {total} ファイル"
-                    });
-
-                    await Task.Yield();
-                }
-
-                cancellationToken.ThrowIfCancellationRequested();
+                }, cancellationToken);
 
                 // 一時フォルダを正式な配置先へ切り替える
                 Directory.Move(tempPath, installPath);
-                copyCompleted = true; 
+                copyCompleted = true;
             }
 
             // 一時フォルダは削除しておく
@@ -201,7 +202,9 @@ namespace ApplicationSetupWizardLite.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "インストール一時フォルダの削除に失敗");
+                        _logger.LogWarning(
+                            ex,
+                            "インストール一時フォルダの削除に失敗");
                     }
                 }
             }
