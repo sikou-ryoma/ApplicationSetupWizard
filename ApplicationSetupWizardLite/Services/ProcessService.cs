@@ -1,6 +1,7 @@
 ﻿using ApplicationSetupWizardLite.Context;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace ApplicationSetupWizardLite.Services
 {
@@ -9,16 +10,19 @@ namespace ApplicationSetupWizardLite.Services
         private readonly XmlHelper _xmlHelper;
         private readonly ProcessContext _processContext;
         private readonly SetupContext _setupContext;
+        private readonly ILogger<ProcessService> _logger;
 
 
         public ProcessService(
             XmlHelper xmlHelper,
             ProcessContext processContext,
-            SetupContext setupContext)
+            SetupContext setupContext,
+            ILogger<ProcessService> logger)
         {
             _xmlHelper = xmlHelper;
             _processContext = processContext;
             _setupContext = setupContext;
+            _logger = logger;
         }
 
         /// <summary>
@@ -84,6 +88,10 @@ namespace ApplicationSetupWizardLite.Services
             IProgress<InstallProgress> progress,
             CancellationToken cancellationToken)
         {
+            _logger.LogInformation(
+                "インストールを開始します。インストール先: {InstallPath}",
+                installPath);
+
             string? parentPath = Path.GetDirectoryName(
                 Path.TrimEndingDirectorySeparator(installPath));
 
@@ -156,6 +164,7 @@ namespace ApplicationSetupWizardLite.Services
                         Detail = $"{completed} / {total} ファイル"
                     });
 
+                    _logger.LogDebug(file, "ファイルをコピー");
                     await Task.Yield();
                 }
 
@@ -176,12 +185,13 @@ namespace ApplicationSetupWizardLite.Services
                     }
                     catch (Exception ex)
                     {
-                        // 後片付けの失敗を記録する
-                        System.Diagnostics.Debug.WriteLine(
-                            $"インストール一時フォルダの削除に失敗しました: {ex}");
+                        _logger.LogWarning(ex, "インストール一時フォルダの削除に失敗");
                     }
                 }
             }
+            _logger.LogInformation(
+                "インストールが正常に完了しました。インストール先: {InstallPath}",
+                installPath);
         }
 
         public long GetPayloadSize(string payloadPath)

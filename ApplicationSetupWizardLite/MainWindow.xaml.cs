@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Windows;
 using System.Reflection;
+using Microsoft.Extensions.Logging;
 
 
 namespace ApplicationSetupWizardLite
@@ -86,7 +87,11 @@ namespace ApplicationSetupWizardLite
             // 設定とコンテクスト
             _appConfig = new AppConfig(_xml);
             _setupContext = new SetupContext(_appConfig);
-            _processService = new ProcessService(_xml, _processContext, _setupContext);
+            _processService = new ProcessService(
+                _xml,
+                _processContext, 
+                _setupContext,
+                App.LoggerFactory.CreateLogger<ProcessService>());
 
             // 初期画面の表示
             GetStepMessages();
