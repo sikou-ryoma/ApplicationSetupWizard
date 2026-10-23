@@ -38,8 +38,8 @@ namespace ApplicationSetupWizardLite.ViewModels
             get => _status;
             set => SetProperty(ref _status, value);
         }
-
         
+
         // 詳細情報
         private string _detail = "インストールを開始しています...";
 
@@ -71,7 +71,7 @@ namespace ApplicationSetupWizardLite.ViewModels
             Status = "インストールを開始しています...";
             Detail = "準備中です。";
             _installCts = new CancellationTokenSource();
-            await Task.Delay(2000); // UIの更新を待つために少し待機
+            await Task.Delay(1000); // UIの更新を待つために少し待機
 
             try
             {
@@ -82,15 +82,32 @@ namespace ApplicationSetupWizardLite.ViewModels
                     Detail = p.Detail;
                 });
 
-                await _installService.InstallAsync(
+                bool installed = await _installService.InstallAsync(
                     payloadPath,
                     installPath,
                     progress,
                     _installCts.Token);
 
+                if (!installed)
+                {
+                    Progress = 0;
+                    Status = "すでにインストールされています。";
+                    Detail = "同じバージョンが存在するため、インストールを行いませんでした。";
+
+                    await Task.Delay(1000);
+
+                    return new SetupResult
+                    {
+                        Status = SetupStatus.AlreadyInstalled,
+                        StatusText = Status,
+                        DetailText = Detail
+                    };
+                }
+
                 Progress = 100;
                 Status = "インストールが完了しました。";
                 Detail = "すべての処理が正常に終了しました。";
+
                 await Task.Delay(1000);
 
                 return new SetupResult

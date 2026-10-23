@@ -82,15 +82,18 @@ namespace ApplicationSetupWizardLite.Services
             }
         }
         
-        public async Task InstallAsync(
+        public async Task<bool> InstallAsync(
             string payloadPath,
             string installPath,
             IProgress<InstallProgress> progress,
             CancellationToken cancellationToken)
         {
             _logger.LogInformation(
-                "インストールを開始します。インストール先: {InstallPath}",
+                "Payloadの配置処理を開始します。InstallPath: {InstallPath}",
                 installPath);
+
+            // インストール可否チェック
+            // ===============================
 
             string? parentPath = Path.GetDirectoryName(
                 Path.TrimEndingDirectorySeparator(installPath));
@@ -101,13 +104,24 @@ namespace ApplicationSetupWizardLite.Services
                     "インストール先の親フォルダを取得できません。");
             }
 
-            // 正式な配置先が既に存在する場合は上書きしない
-            if (Directory.Exists(installPath) || File.Exists(installPath))
+            // 同じバージョンのインストール先がすでに存在
+            if (Directory.Exists(installPath))
             {
-                throw new IOException(
-                    $"インストール先が既に存在します: {installPath}");
+                _logger.LogInformation(
+                    "インストール済みのため処理をスキップします。インストール先: {InstallPath}",
+                    installPath);
+
+                return false;   // => SetupStatus.AlreadyInstalled
             }
 
+            // インストール先と同名のファイルが存在
+            if (File.Exists(installPath))
+            {
+                throw new IOException(
+                    $"インストール先と同名のファイルが存在します: {installPath}");
+            }
+
+            // 一時フォルダがすでに存在
             string tempPath = installPath + ".installing";
 
             if (Directory.Exists(tempPath))
@@ -121,6 +135,7 @@ namespace ApplicationSetupWizardLite.Services
 
             bool copyCompleted = false;
 
+            // 一時フォルダへPayloadデータを展開
             try
             {
                 string[] files = Directory.GetFiles(
@@ -145,7 +160,8 @@ namespace ApplicationSetupWizardLite.Services
 
                     Directory.CreateDirectory(
                         Path.GetDirectoryName(destination)!);
-
+                    
+                    // TODO: ファイル毎にTask振ってるため見直しする
                     await Task.Run(() =>
                     {
                         File.Copy(file, destination);
@@ -164,17 +180,17 @@ namespace ApplicationSetupWizardLite.Services
                         Detail = $"{completed} / {total} ファイル"
                     });
 
-                    _logger.LogDebug(file, "ファイルをコピー");
                     await Task.Yield();
                 }
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-
                 // 一時フォルダを正式な配置先へ切り替える
                 Directory.Move(tempPath, installPath);
-                copyCompleted = true;
+                copyCompleted = true; 
             }
+
+            // 一時フォルダは削除しておく
             finally
             {
                 if (!copyCompleted && Directory.Exists(tempPath))
@@ -190,10 +206,14 @@ namespace ApplicationSetupWizardLite.Services
                 }
             }
             _logger.LogInformation(
-                "インストールが正常に完了しました。インストール先: {InstallPath}",
+                "Payloadの配置処理が完了しました。InstallPath: {InstallPath}",
                 installPath);
+
+            return true;    // => SetupStatus.Success
         }
 
+
+        // Payloadファイル全体のサイズ
         public long GetPayloadSize(string payloadPath)
         {
             if (!Directory.Exists(payloadPath))
@@ -209,7 +229,8 @@ namespace ApplicationSetupWizardLite.Services
                     SearchOption.AllDirectories)
                 .Sum(file => new FileInfo(file).Length);
         }
-
+        
+        // おおよその数にフォーマット
         public string FormatFileSize(long bytes)
         {
             string[] units = { "B", "KB", "MB", "GB", "TB" };

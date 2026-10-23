@@ -20,6 +20,9 @@ namespace ApplicationSetupWizardLite
     /// </summary>
     public partial class MainWindow : Window
     {
+        // Logger
+        private readonly ILogger<MainWindow> _logger;
+
         // configuration
         private readonly AppConfig _appConfig;
         private readonly XmlHelper _xml;
@@ -63,6 +66,9 @@ namespace ApplicationSetupWizardLite
         {
             InitializeComponent();
 
+            // ロガー
+            _logger = App.LoggerFactory.CreateLogger<MainWindow>();
+
             // データバインド
             DataContext = this;
             NextCommand = new AsyncRelayCommand(
@@ -72,7 +78,6 @@ namespace ApplicationSetupWizardLite
 
             // xml読み込み
             var assembly = Assembly.GetExecutingAssembly();
-
             using var stream = assembly.GetManifestResourceStream(
                 "ApplicationSetupWizardLite.Conf.config.xml");
 
@@ -81,7 +86,6 @@ namespace ApplicationSetupWizardLite
                 throw new FileNotFoundException(
                     "埋め込みリソース config.xml が見つかりません。");
             }
-
             _xml = new XmlHelper(stream);
 
             // 設定とコンテクスト
@@ -104,8 +108,9 @@ namespace ApplicationSetupWizardLite
             _installLocationViewModel = new InstallLocationViewModel(_setupContext);
             _installingViewModel = new InstallingViewModel(_processService);
         }
-
-        // Payload全体の容量数をロード時に取得
+        
+        
+        // Payload全体の容量数をウインドウのロード時に取得される
         // ===============================
         private async void Window_Loaded(object sender, RoutedEventArgs e)
         {
@@ -125,6 +130,8 @@ namespace ApplicationSetupWizardLite
             }
         }
 
+        // Payloadの容量数の取得サービス起動と処理
+        // ===============================
         private async Task LoadPayloadSizeAsync()
         {
             string? payloadPath = null;
@@ -400,9 +407,19 @@ namespace ApplicationSetupWizardLite
                 }
 
                 // インストールを実行
+                _logger.LogInformation(
+                    "インストール処理を開始します。AppName: {AppName}, Version: {Version}, InstallPath: {InstallPath}",
+                    _appConfig.TargetAppName,
+                    _appConfig.TargetAppVersion,
+                    installPath);
+
                 _setupResult = await _installingViewModel.StartInstallAsync(
                     extractedPayloadPath,
                     installPath);
+
+                _logger.LogInformation(
+                    "インストール処理が終了しました。Status: {Status}",
+                    _setupResult.Status);
 
                 exePath = Path.Combine(
                     _setupContext.GetFullInstallPath(_setupContext.InstallPath),

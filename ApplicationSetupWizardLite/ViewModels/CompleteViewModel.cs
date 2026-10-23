@@ -21,6 +21,7 @@ namespace ApplicationSetupWizardLite.ViewModels
         {
             SetupStatus.Success => "✓",
             SetupStatus.Cancelled => "Ⅱ",
+            SetupStatus.AlreadyInstalled => "✓",
             _ => "!"
         };
 
@@ -28,6 +29,7 @@ namespace ApplicationSetupWizardLite.ViewModels
         {
             SetupStatus.Success => "#4CAF50",
             SetupStatus.Cancelled => "#E0A020",
+            SetupStatus.AlreadyInstalled => "#607D8B",
             _ => "#D9534F"
         };
 
@@ -109,6 +111,9 @@ namespace ApplicationSetupWizardLite.ViewModels
 
                 SetupStatus.Cancelled =>
                     "インストールはキャンセルされました。",
+
+                SetupStatus.AlreadyInstalled =>
+                    "このバージョンはすでにインストールされています。",
 
                 _ =>
                     "アプリケーションのインストール中に問題が発生しました。"

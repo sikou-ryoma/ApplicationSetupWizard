@@ -5,7 +5,8 @@ namespace ApplicationSetupWizardLite.Context
     {
         Success,
         Failed,
-        Cancelled
+        Cancelled,
+        AlreadyInstalled
     }
 
     // ショートカット用
